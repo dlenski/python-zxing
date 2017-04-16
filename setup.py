@@ -4,10 +4,9 @@ from distutils.core import setup
 
 setup(
     name='zxing',
-    version='0.1',
+    version='0.4',
     description="wrapper for zebra crossing (zxing) barcode library",
-    url='http://simplecv.org',
-    author='Ingenuitas',
-    author_email='public.relations@ingenuitas.com',
+    author='Dan Lenski',
+    author_email='dlenski@gmail.com',
     packages=['zxing'],
 )

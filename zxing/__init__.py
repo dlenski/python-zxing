@@ -5,113 +5,97 @@
 #  this allows you to send images and get back data from the ZXing
 #  library:  http://code.google.com/p/zxing/
 #
-#  by default, it will expect to be run from the zxing source code directory
-#  otherwise you must specify the location as a parameter to the constructor
-#
 
-__version__ = '0.3'
-import subprocess, re, os
+from __future__ import print_function
+from enum import Enum
 
-class BarCodeReader():
-  location = ""
-  command = "java"
-  libs = ["javase/javase.jar", "core/core.jar"]
-  args = ["-cp", "LIBS", "com.google.zxing.client.j2se.CommandLineRunner"]
+__version__ = '0.4'
+import subprocess as sp, re, os
 
-  def __init__(self, loc=""):
-    if not len(loc):
-      if (os.environ.has_key("ZXING_LIBRARY")):
-        loc = os.environ["ZXING_LIBRARY"]
-      else:
-        loc = ".."
+class BarCodeReader(object):
+  java = "java"
+  cls = "com.google.zxing.client.j2se.CommandLineRunner"
 
-    self.location = loc
+  def __init__(self, classpath=None):
+    if classpath:
+      self.classpath = classpath if isinstance(classpath, str) else ':'.join(classpath)
+    else:
+      self.classpath = os.environ.get("ZXING_CLASSPATH","")
 
-  def decode(self, files, try_harder = False, qr_only = False):
-    cmd = [self.command]
-    cmd += self.args[:] #copy arg values
+  def decode(self, filenames, try_harder = False, possible_formats = None):
+    possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
+
+    if isinstance(filenames, str):
+      one_file = True
+      filenames = [ os.path.abspath(filenames) ]
+    else:
+      one_file = False
+      filenames = [ os.path.abspath(f) for f in filenames ]
+
+    cmd = [self.java, '-cp', self.classpath, self.cls] + filenames
     if try_harder:
-      cmd.append("--try_harder")
-    if qr_only:
-      cmd.append("--possibleFormats=QR_CODE")
+      cmd.append('--try_harder')
+    if possible_formats:
+      for pf in possible_formats:
+        cmd += ['--possible_formats', pf ]
 
-    libraries = [self.location + "/" + l for l in self.libs]
+    p = sp.Popen(cmd, stdout=sp.PIPE, universal_newlines=True)
+    stdout, stderr = p.communicate()
 
-    cmd = [ c if c != "LIBS" else os.pathsep.join(libraries) for c in cmd ]
-
-    # send one file, or multiple files in a list
-    SINGLE_FILE = False
-    if type(files) != type(list()):
-      cmd.append(files)
-      SINGLE_FILE = True
+    if p.returncode:
+      raise sp.CalledProcessError(p.returncode, p.args, stdout, stderr)
     else:
-      cmd += files
+      file_results = re.split(r'\nfile:', stdout)
+      codes = [ BarCode.parse(result) for result in file_results ]
 
-    (stdout, stderr) = subprocess.Popen(cmd, stdout=subprocess.PIPE, universal_newlines=True).communicate()
-    codes = []
-    file_results = stdout.split("\nfile:")
-    for result in file_results:
-      lines = stdout.split("\n")
-      if re.search("No barcode found", lines[0]):
-        codes.append(None)
-        continue
+    return (codes[0] if one_file else codes)
 
-      codes.append(BarCode(result))
+class CLROutputBlock(Enum):
+  UNKNOWN = 0
+  RAW = 1
+  PARSED = 2
+  POINTS = 3
 
-    if SINGLE_FILE:
-      return codes[0]
-    else:
-      return codes
+class BarCode(object):
+  @classmethod
+  def parse(cls, zxing_output):
+    block = CLROutputBlock.UNKNOWN
+    format = type = None
+    raw = parsed = ''
+    points = []
 
-#this is the barcode class which has
-class BarCode:
-  format = ""
-  points = []
-  data = ""
-  raw = ""
+    for l in zxing_output.splitlines(True):
+      if block==CLROutputBlock.UNKNOWN:
+        if l.endswith(': No barcode found\n'):
+          return None
+        m = re.search(r"format:\s*([^,]+),\s*type:\s*([^)]+)", l)
+        if m:
+          format, type = m.groups()
+        elif l.startswith("Raw result:"):
+          block = CLROutputBlock.RAW
+      elif block==CLROutputBlock.RAW:
+        if l.startswith("Parsed result:"):
+          block = CLROutputBlock.PARSED
+        else:
+          raw += l
+      elif block==CLROutputBlock.PARSED:
+        if re.match(r"Found\s+\d+\s+result\s+points?", l):
+          block = CLROutputBlock.POINTS
+        else:
+          parsed += l
+      elif block==CLROutputBlock.POINTS:
+        m = re.match(r"\s*Point\s*\d+:\s*\(([\d.]+),([\d.]+)\)", l)
+        if m:
+          points.append((float(m.group(1)), float(m.group(2))))
 
-  def __init__(self, zxing_output):
-    lines = zxing_output.split("\n")
-    raw_block = False
-    parsed_block = False
-    point_block = False
+    return cls(format, type, raw.rstrip('\n'), parsed.rstrip('\n'), points)
 
-    self.points = []
-    for l in lines:
-      m = re.search("format:\s([^,]+)", l)
-      if not raw_block and not parsed_block and not point_block and m:
-        self.format = m.group(1)
-        continue
+  def __init__(self, format, type, raw, parsed, points):
+    self.raw = raw
+    self.parsed = parsed
+    self.format = format
+    self.type = type
+    self.points = points
 
-      if not raw_block and not parsed_block and not point_block and l == "Raw result:":
-        raw_block = True
-        continue
-
-      if raw_block and l != "Parsed result:":
-        self.raw += l + "\n"
-        continue
-
-      if raw_block and l == "Parsed result:":
-        raw_block = False
-        parsed_block = True
-        continue
-
-      if parsed_block and not re.match("Found\s\d\sresult\spoints", l):
-        self.data += l + "\n"
-        continue
-
-      if parsed_block and re.match("Found\s\d\sresult\spoints", l):
-        parsed_block = False
-        point_block = True
-        continue
-
-      if point_block:
-        m = re.search("Point\s(\d+):\s\(([\d\.]+),([\d\.]+)\)", l)
-        if (m):
-          self.points.append((float(m.group(2)), float(m.group(3))))
-
-    return
-
-
-if __name__ == "__main__":
-  print("ZXing module")
+  def __repr__(self):
+    return '{}({!r}, {!r}, {!r}, {!r}, {!r})'.format(self.__class__.__name__, self.raw, self.parsed, self.format, self.type, self.points)
