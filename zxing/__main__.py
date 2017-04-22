@@ -5,11 +5,12 @@ from . import BarCodeReader, BarCode
 
 p = argparse.ArgumentParser()
 p.add_argument('-P','--classpath')
+p.add_argument('-J','--java')
 p.add_argument('--try-harder', action='store_true')
 p.add_argument('image', nargs='+')
 args = p.parse_args()
 
-bcr = BarCodeReader(args.classpath)
+bcr = BarCodeReader(args.classpath, args.java)
 
 for fn in args.image:
     print("%s\n%s" % (fn, '='*len(fn)))

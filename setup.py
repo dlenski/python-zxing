@@ -1,6 +1,6 @@
 #!/usr/bin/env python
  
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='zxing',
@@ -9,4 +9,5 @@ setup(
     author='Dan Lenski',
     author_email='dlenski@gmail.com',
     packages=['zxing'],
+    package_data = {'zxing': ['java/core.jar', 'java/javase.jar', 'java/jcommander.jar']}
 )

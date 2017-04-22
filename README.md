@@ -6,16 +6,17 @@ This is a hack subprocess control library that gives you a reasonable Python 3 i
 
 If you need to threshold or filter your image prior to sending to ZXing, I recommend using functions from [SimpleCV](http://simplecv.org).
 
-## Dependencies
+## Installation
 
-Download JARs for ZXing core and javase, and jcommander ([required since ZXing 3.2.1](https://github.com/zxing/zxing/issues/518)):
+Use the `download-jars.sh` script to download JARs for ZXing core and javase, and jcommander ([required since ZXing 3.2.1](https://github.com/zxing/zxing/issues/518)),
+before using `pip3` to install:
 
 ```sh
-$ mkdir ~/zxing
-$ cd ~/zxing
-$ wget https://repo1.maven.org/maven2/com/google/zxing/javase/3.3.0/javase-3.3.0.jar
-$ wget https://repo1.maven.org/maven2/com/google/zxing/core/3.3.0/core-3.3.0.jar
-$ wget https://repo1.maven.org/maven2/com/beust/jcommander/1.7/jcommander-1.7.jar # required since ZXing 3.2.1
+$ cd python-zxing
+$ ./download-jars.sh
+Downloading zxing-javase, zxing-core, and jcommander JARs into ./zxing/java ...
+$ pip3 install .
+...
 ```
 
 ## Usage
@@ -24,6 +25,7 @@ The library consists of two classes, `BarCodeReader` and `BarCode`. `BarCode` pa
 the output from ZXing's `CommandLineRunner` into a `BarCode` object:
 
 ```python
+>>> import zxing
 >>> b = zxing.BarCode.parse("""
 file:default.png (format: FAKE_DATA, type: TEXT):
 Raw result:
@@ -50,10 +52,10 @@ the bar of foo
 [(24.0, 18.0) ... ]
 ```
 
-Initializing the barcode reader, you have to tell it where to find the ZXing core modules via a Java `CLASSPATH` parameter:
+Initializing and using the barcode reader:
 
 ```python
-reader = zxing.BarCodeReader("/home/user/zxing/*")
+reader = zxing.BarCodeReader()
 barcode = reader.decode("/tmp/image.jpg", try_harder=True, possible_formats=['QR_CODE'])
 (barcode1, barcode2) = reader.decode(["/tmp/1.png", "/tmp/2.png"])
 ```

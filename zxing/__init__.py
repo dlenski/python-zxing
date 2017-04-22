@@ -13,14 +13,16 @@ __version__ = '0.4'
 import subprocess as sp, re, os
 
 class BarCodeReader(object):
-  java = "java"
   cls = "com.google.zxing.client.j2se.CommandLineRunner"
 
-  def __init__(self, classpath=None):
+  def __init__(self, classpath=None, java=None):
+    self.java = java or 'java'
     if classpath:
       self.classpath = classpath if isinstance(classpath, str) else ':'.join(classpath)
-    else:
+    elif "ZXING_CLASSPATH" in os.environ:
       self.classpath = os.environ.get("ZXING_CLASSPATH","")
+    else:
+      self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
   def decode(self, filenames, try_harder = False, possible_formats = None):
     possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
