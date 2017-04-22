@@ -88,7 +88,7 @@ class BarCode(object):
         if m:
           points.append((float(m.group(1)), float(m.group(2))))
 
-    return cls(format, type, raw.rstrip('\n'), parsed.rstrip('\n'), points)
+    return cls(format, type, raw[:-1], parsed[:-1], points)
 
   def __init__(self, format, type, raw, parsed, points):
     self.raw = raw
