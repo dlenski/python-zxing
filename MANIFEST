@@ -2,4 +2,4 @@
 README
 setup.py
 zxing/__init__.py
-zxing/zxing.py
+zxing/main.py
