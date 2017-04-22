@@ -8,6 +8,8 @@ If you need to threshold or filter your image prior to sending to ZXing, I recom
 
 ## Dependencies and installation
 
+You'll neeed to have a recent Java binary somewhere in your path.
+
 Use the Python 3 version of pip (usually invoked via `pip3`) to install:
 
 ```sh
