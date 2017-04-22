@@ -6,16 +6,13 @@ This is a hack subprocess control library that gives you a reasonable Python 3 i
 
 If you need to threshold or filter your image prior to sending to ZXing, I recommend using functions from [SimpleCV](http://simplecv.org).
 
-## Installation
+## Dependencies and installation
 
-Use the `download-jars.sh` script to download JARs for ZXing core and javase, and jcommander ([required since ZXing 3.2.1](https://github.com/zxing/zxing/issues/518)),
-before using `pip3` to install:
+Use the Python 3 version of pip (usually invoked via `pip3`) to install:
 
 ```sh
-$ cd python-zxing
-$ ./download-jars.sh
-Downloading zxing-javase, zxing-core, and jcommander JARs into ./zxing/java ...
-$ pip3 install .
+$ pip3 install https://github.com/dlenski/python-zxing/archive/master.zip    # Latest version
+$ pip3 install https://github.com/dlenski/python-zxing/archive/0.5.zip       # Tagged release
 ...
 ```
 

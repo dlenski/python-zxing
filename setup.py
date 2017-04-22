@@ -1,6 +1,26 @@
-#!/usr/bin/env python
- 
+#!/usr/bin/env python3
+
 from setuptools import setup
+from urllib.request import urlretrieve
+from urllib.error import URLError
+from os import access, path, R_OK
+
+def download_java_files():
+    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.3.0/javase-3.3.0.jar',
+             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.3.0/core-3.3.0.jar',
+             'java/jcommander.jar': 'https://repo1.maven.org/maven2/com/beust/jcommander/1.7/jcommander-1.7.jar'}
+
+    for fn, url in files.items():
+        p = path.join(path.dirname(__file__), 'zxing', fn)
+        if access(p, R_OK):
+            print("Already have %s." % p)
+        else:
+            print("Downloading %s from %s ..." % (p, url))
+            try:
+                urlretrieve(url, p)
+            except URLError as e:
+                raise SystemExit(*e.args)
+    return list(files.keys())
 
 setup(
     name='zxing',
@@ -9,5 +29,5 @@ setup(
     author='Dan Lenski',
     author_email='dlenski@gmail.com',
     packages=['zxing'],
-    package_data = {'zxing': ['java/core.jar', 'java/javase.jar', 'java/jcommander.jar']}
+    package_data = {'zxing': download_java_files()}
 )
