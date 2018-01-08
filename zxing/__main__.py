@@ -7,11 +7,11 @@ from . import BarCodeReader, BarCode
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('-P','--classpath')
-    p.add_argument('-J','--java')
     p.add_argument('-c','--csv', action='store_true')
     p.add_argument('--try-harder', action='store_true')
     p.add_argument('image', nargs='+')
+    p.add_argument('-P','--classpath', help=argparse.SUPPRESS)
+    p.add_argument('-J','--java', help=argparse.SUPPRESS)
     args = p.parse_args()
 
     bcr = BarCodeReader(args.classpath, args.java)

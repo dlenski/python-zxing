@@ -66,7 +66,7 @@ barcode = reader.decode("/tmp/image.jpg", try_harder=True, possible_formats=['QR
 The command-line interface can decode images into barcodes and output in either a human-readable or CSV format:
 
 ```
-usage: zxing [-h] [-c] [-P CLASSPATH] [-J JAVA] [--try-harder] image [image ...]
+usage: zxing [-h] [-c] [--try-harder] image [image ...]
 ```
 
 Human-readable:
