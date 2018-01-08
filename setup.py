@@ -29,5 +29,6 @@ setup(
     author='Dan Lenski',
     author_email='dlenski@gmail.com',
     packages=['zxing'],
-    package_data = {'zxing': download_java_files()}
+    package_data = {'zxing': download_java_files()},
+    entry_points = {'console_scripts': ['zxing=zxing.__main__:main']},
 )

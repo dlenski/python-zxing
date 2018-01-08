@@ -24,7 +24,7 @@ class BarCodeReader(object):
     else:
       self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-  def decode(self, filenames, try_harder = False, possible_formats = None):
+  def decode(self, filenames, try_harder=False, possible_formats=None):
     possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
     if isinstance(filenames, str):
@@ -45,7 +45,7 @@ class BarCodeReader(object):
     stdout, stderr = p.communicate()
 
     if p.returncode:
-      raise sp.CalledProcessError(p.returncode, p.args, stdout, stderr)
+      codes = [ None for fn in filenames ]
     else:
       file_results = re.split(r'\nfile:', stdout)
       codes = [ BarCode.parse(result) for result in file_results ]

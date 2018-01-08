@@ -60,3 +60,32 @@ barcode = reader.decode("/tmp/image.jpg", try_harder=True, possible_formats=['QR
 ```
 
 `decode()` takes an image path (or list of paths) and has optional parameters `try_harder` and `possible_formats`.  If no barcode is found, it returns `None` objects.
+
+## Command-line interface
+
+The command-line interface can decode images into barcodes and output in either a human-readable or CSV format:
+
+```
+usage: zxing [-h] [-c] [-P CLASSPATH] [-J JAVA] [--try-harder] image [image ...]
+```
+
+Human-readable:
+
+```sh
+$ zxing /tmp/barcode.png
+/tmp/barcode.png
+================
+  Decoded TEXT barcode in QR_CODE format.
+  Raw text:    'Testing 123'
+  Parsed text: 'Testing 123'
+```
+
+CSV output (can be opened by LibreOffice or Excel):
+
+```sh
+$ zxing /tmp/barcode1.png /tmp/barcode2.png /tmp/barcode3.png
+Filename,Format,Type,Raw,Parsed
+/tmp/barcode1.png,CODE_128,TEXT,Testing 123,Testing 123
+/tmp/barcode2.png,QR_CODE,URI,http://zxing.org,http://zxing.org
+/tmp/barcode3.png,QR_CODE,TEXT,"This text, ""Has stuff in it!"" Wow⏎Yes it does!","This text, ""Has stuff in it!"" Wow⏎Yes it does!"
+```
