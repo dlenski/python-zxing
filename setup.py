@@ -57,6 +57,8 @@ setup(
     name='zxing',
     version=version_pep,
     description="wrapper for zebra crossing (zxing) barcode library",
+    url="https://github.com/dlenski/python-zxing",
+    long_description=open('README.md').read(),
     author='Daniel Lenski',
     author_email='dlenski@gmail.com',
     packages=['zxing'],
