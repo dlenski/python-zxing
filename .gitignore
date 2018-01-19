@@ -4,3 +4,4 @@ dist
 dist/*
 *.pyc
 zxing/java
+zxing/version.py
