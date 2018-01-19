@@ -9,7 +9,7 @@
 from __future__ import print_function
 from enum import Enum
 
-__version__ = '0.4'
+from .version import __version__
 import subprocess as sp, re, os
 
 class BarCodeReader(object):
