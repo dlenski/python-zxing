@@ -1,5 +1,8 @@
 # python-zxing
 
+[![PyPI](https://img.shields.io/pypi/v/zxing.svg)](https://pypi.python.org/pypi/zxing)
+[![Build Status](https://api.travis-ci.org/dlenski/python-zxing.png)](https://travis-ci.org/dlenski/python-zxing)
+
 This is a wrapper for the [ZXing barcode library](https://github.com/zxing/zxing). It's a "slightly less quick-and-dirty" fork of [oostendo/python-zxing](https://github.com/oostendo/python-zxing).
 
 This is a hack subprocess control library that gives you a reasonable Python 3 interface to the ZXing command line.  ZXing will recognize and decode 1D and 2D barcodes in images, and return position information and decoded values.  This will let you read barcodes from any images in Python.
