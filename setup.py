@@ -62,4 +62,5 @@ setup(
     packages=['zxing'],
     package_data = {'zxing': download_java_files()},
     entry_points = {'console_scripts': ['zxing=zxing.__main__:main']},
+    test_suite = 'nose.collector',
 )
