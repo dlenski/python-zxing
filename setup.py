@@ -37,9 +37,9 @@ else:
 ########################################
 
 def download_java_files():
-    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.3.0/javase-3.3.0.jar',
-             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.3.0/core-3.3.0.jar',
-             'java/jcommander.jar': 'https://repo1.maven.org/maven2/com/beust/jcommander/1.7/jcommander-1.7.jar'}
+    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.3.1/javase-3.3.1.jar',
+             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.3.1/core-3.3.1.jar',
+             'java/jcommander.jar': 'https://repo1.maven.org/maven2/com/beust/jcommander/1.72/jcommander-1.72.jar'}
 
     for fn, url in files.items():
         p = path.join(path.dirname(__file__), 'zxing', fn)
