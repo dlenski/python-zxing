@@ -15,8 +15,7 @@ python:
   - "nightly"
 
 before_script:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq openjdk-7-jdk
+  - sudo apt-get install -qq openjdk-7-jre
 
 script:
   - python setup.py test
