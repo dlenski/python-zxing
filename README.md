@@ -25,7 +25,7 @@ the output from ZXing's `CommandLineRunner` into a `BarCode` object:
 
 ```python
 >>> import zxing
->>> b = zxing.BarCode.parse("""
+>>> b = zxing.BarCode.parse(b"""
 file:default.png (format: FAKE_DATA, type: TEXT):
 Raw result:
 foo-bar|the bar of foo

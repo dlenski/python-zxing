@@ -41,13 +41,13 @@ class BarCodeReader(object):
       for pf in possible_formats:
         cmd += ['--possible_formats', pf ]
 
-    p = sp.Popen(cmd, stdout=sp.PIPE, universal_newlines=True)
+    p = sp.Popen(cmd, stdout=sp.PIPE, universal_newlines=False)
     stdout, stderr = p.communicate()
 
     if p.returncode:
       codes = [ None for fn in filenames ]
     else:
-      file_results = re.split(r'\nfile:', stdout)
+      file_results = re.split(rb'\nfile:', stdout)
       codes = [ BarCode.parse(result) for result in file_results ]
 
     return (codes[0] if one_file else codes)
@@ -63,34 +63,36 @@ class BarCode(object):
   def parse(cls, zxing_output):
     block = CLROutputBlock.UNKNOWN
     format = type = None
-    raw = parsed = ''
+    raw = parsed = b''
     points = []
 
     for l in zxing_output.splitlines(True):
       if block==CLROutputBlock.UNKNOWN:
-        if l.endswith(': No barcode found\n'):
+        if l.endswith(b': No barcode found\n'):
           return None
-        m = re.search(r"format:\s*([^,]+),\s*type:\s*([^)]+)", l)
+        m = re.search(rb"format:\s*([^,]+),\s*type:\s*([^)]+)", l)
         if m:
           format, type = m.groups()
-        elif l.startswith("Raw result:"):
+        elif l.startswith(b"Raw result:"):
           block = CLROutputBlock.RAW
       elif block==CLROutputBlock.RAW:
-        if l.startswith("Parsed result:"):
+        if l.startswith(b"Parsed result:"):
           block = CLROutputBlock.PARSED
         else:
           raw += l
       elif block==CLROutputBlock.PARSED:
-        if re.match(r"Found\s+\d+\s+result\s+points?", l):
+        if re.match(rb"Found\s+\d+\s+result\s+points?", l):
           block = CLROutputBlock.POINTS
         else:
           parsed += l
       elif block==CLROutputBlock.POINTS:
-        m = re.match(r"\s*Point\s*\d+:\s*\(([\d.]+),([\d.]+)\)", l)
+        m = re.match(rb"\s*Point\s*\d+:\s*\(([\d.]+),([\d.]+)\)", l)
         if m:
           points.append((float(m.group(1)), float(m.group(2))))
 
-    return cls(format, type, raw[:-1], parsed[:-1], points)
+    raw = raw[:-1].decode()
+    parsed = parsed[:-1].decode()
+    return cls(format, type, raw, parsed, points)
 
   def __init__(self, format, type, raw, parsed, points):
     self.raw = raw
