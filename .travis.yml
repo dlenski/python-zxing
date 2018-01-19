@@ -19,3 +19,13 @@ before_script:
 
 script:
   - python setup.py test
+
+
+deploy:
+  provider: pypi
+  user: moxfyre
+  password:
+    secure: jkpyo0dD4TycB4fMyGRCbYG0ErMOx9+xqj4gJ5M/+Ugc/0p7/kfsCwuU/3fTQMt3RRyJimSZVxjIGOhHksBMV5+VDCLelGUVyONA1FVnvw5XgWZI90SndrUfeiMS7wE49+wLh9J87Oa9w2yERAz6OPuecJ3SqLFf8duhcsGF+cWZp0QB9fms/0umooRrcXu4SC4rB9K2Zi+Va/xVomWos/hBfMFJHHj0u6ywbesni+EKU7NdN3StDcibfBV5gPy0PTJalPrAC09pchVceGMr5JASQnS9gNvkOUS9w35uiObcimz/bONJUVuNbeH8rgbQ24fACL4RJegARueKi2j2pcbRAo2aNSU9AHbbaMt5PiDxIGJXw+TM0MNh2WNDnIktouvKO9+yOxkeEBjOZbmNk0ZprNbcfuVVnk5qcMtqFCt/gX8PB/fG0odO7jM49E/PR8VHB/HkFY0JYiw45a2narqHZ2UpaAtg0N4vnbiqmxrgTDSc2h8kVytei9rqsipeXFc4j4gjj55GtehxujwJDOZlcJ88IHDax7W1XmFtP+bmiATcIv0L3u9y34zAljjC/w0MUigt5vwQxs2YQHFt002Z6NWIFweTt0UlwJBsJgi/lbK81VGdC4qzRMR7Fy1qk2KEj3ZfFEwJb5czvVlkL1ZGXKVfkkGIKY7avV8CZMU=
+  on:
+    tags: true
+    repo: dlenski/python-zxing
