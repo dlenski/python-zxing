@@ -72,7 +72,7 @@ class BarCode(object):
           return None
         m = re.search(rb"format:\s*([^,]+),\s*type:\s*([^)]+)", l)
         if m:
-          format, type = m.groups()
+          format, type = m.group(1).decode(), m.group(2).decode()
         elif l.startswith(b"Raw result:"):
           block = CLROutputBlock.RAW
       elif block==CLROutputBlock.RAW:
