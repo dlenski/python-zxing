@@ -24,17 +24,10 @@ class BarCodeReader(object):
     else:
       self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-  def decode(self, filenames, try_harder=False, possible_formats=None):
+  def decode(self, filename, try_harder=False, possible_formats=None):
     possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-    if isinstance(filenames, str):
-      one_file = True
-      filenames = [ os.path.abspath(filenames) ]
-    else:
-      one_file = False
-      filenames = [ os.path.abspath(f) for f in filenames ]
-
-    cmd = [self.java, '-cp', self.classpath, self.cls] + filenames
+    cmd = [self.java, '-cp', self.classpath, self.cls, filename]
     if try_harder:
       cmd.append('--try_harder')
     if possible_formats:
@@ -44,13 +37,8 @@ class BarCodeReader(object):
     p = sp.Popen(cmd, stdout=sp.PIPE, universal_newlines=False)
     stdout, stderr = p.communicate()
 
-    if p.returncode:
-      codes = [ None for fn in filenames ]
-    else:
-      file_results = re.split(rb'\nfile:', stdout)
-      codes = [ BarCode.parse(result) for result in file_results ]
-
-    return (codes[0] if one_file else codes)
+    if not p.returncode:
+      return BarCode.parse(stdout)
 
 class CLROutputBlock(Enum):
   UNKNOWN = 0

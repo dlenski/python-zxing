@@ -23,13 +23,6 @@ def test_decoding():
         if dec.parsed != expected:
             raise AssertionError('Expected {!r} but got {!r}'.format(expected, dec.parsed))
 
-def test_decoding_multiple():
-    reader = zxing.BarCodeReader()
-    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected in test_barcodes]
-    for dec, (filename, expected) in zip(reader.decode(filenames), test_barcodes):
-        if dec.parsed != expected:
-            raise AssertionError('Expected {!r} but got {!r}'.format(expected, dec.parsed))
-
 def test_parsing():
     dec = zxing.BarCode.parse("""
 file:default.png (format: FAKE_DATA, type: TEXT):
