@@ -56,3 +56,7 @@ Filename,Format,Type,Raw,Parsed
 /tmp/barcode2.png,QR_CODE,URI,http://zxing.org,http://zxing.org
 /tmp/barcode3.png,QR_CODE,TEXT,"This text, ""Has stuff in it!"" Wow⏎Yes it does!","This text, ""Has stuff in it!"" Wow⏎Yes it does!"
 ```
+
+## License
+
+LGPLv3
