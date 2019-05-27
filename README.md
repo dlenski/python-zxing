@@ -2,6 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/zxing.svg)](https://pypi.python.org/pypi/zxing)
 [![Build Status](https://api.travis-ci.org/dlenski/python-zxing.png)](https://travis-ci.org/dlenski/python-zxing)
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 This is a wrapper for the [ZXing barcode library](https://github.com/zxing/zxing). (It's a "slightly less quick-and-dirty" fork of [oostendo/python-zxing](https://github.com/oostendo/python-zxing).)
 It will allow you to read and decode barcode images from Python.
