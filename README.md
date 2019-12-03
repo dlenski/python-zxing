@@ -9,9 +9,10 @@ It will allow you to read and decode barcode images from Python.
 
 ## Dependencies and installation
 
-You'll neeed to have a recent `java` binary somewhere in your path. (Tested with OpenJDK.)
-
 Use the Python 3 version of pip (usually invoked via `pip3`) to install: `pip3 install zxing`
+
+* You'll neeed to have a recent `java` binary somewhere in your path. (Tested with OpenJDK.)
+* pip will automatically download the relevant [JAR](https://en.wikipedia.org/wiki/JAR_(file_format)) files for the Java ZXing libraries (currently v3.3.1)
 
 ## Usage
 
