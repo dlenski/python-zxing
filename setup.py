@@ -3,7 +3,7 @@
 from setuptools import setup
 from urllib.request import urlretrieve
 from urllib.error import URLError
-from os import access, path, R_OK
+from os import access, path, makedirs, R_OK
 import subprocess as sp
 import sys, re
 
@@ -43,14 +43,16 @@ def download_java_files():
 
     for fn, url in files.items():
         p = path.join(path.dirname(__file__), 'zxing', fn)
+        d = path.dirname(p)
         if access(p, R_OK):
             print("Already have %s." % p)
         else:
             print("Downloading %s from %s ..." % (p, url))
             try:
+                makedirs(d, exist_ok = True)
                 urlretrieve(url, p)
-            except URLError as e:
-                raise SystemExit(*e.args)
+            except (OSError, URLError) as e:
+                raise
     return list(files.keys())
 
 setup(
