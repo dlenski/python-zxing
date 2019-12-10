@@ -11,7 +11,7 @@ from urllib.parse import quote
 from enum import Enum
 
 from .version import __version__
-import subprocess as sp, re, os
+import subprocess as sp, re, os, posixpath
 
 class BarCodeReaderException(Exception):
     def __init__(self, message, filename=None, underlying=None):
@@ -33,7 +33,7 @@ class BarCodeReader(object):
     def decode(self, filename, try_harder=False, possible_formats=None):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        file_uri = 'file://' + quote(os.path.abspath(filename))
+        file_uri = 'file://' + quote(posixpath.abspath(filename))
         cmd = [self.java, '-cp', self.classpath, self.cls, file_uri]
         if try_harder:
             cmd.append('--try_harder')
