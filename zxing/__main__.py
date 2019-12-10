@@ -4,6 +4,7 @@ import argparse
 import csv
 
 from . import BarCodeReader, BarCodeReaderException
+from .version import __version__
 
 def main():
     p = argparse.ArgumentParser()
@@ -12,6 +13,7 @@ def main():
     p.add_argument('image', nargs='+')
     p.add_argument('-P','--classpath', help=argparse.SUPPRESS)
     p.add_argument('-J','--java', help=argparse.SUPPRESS)
+    p.add_argument('-V','--version', action='version', version='%(prog)s ' + __version__)
     args = p.parse_args()
 
     bcr = BarCodeReader(args.classpath, args.java)
