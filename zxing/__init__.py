@@ -12,6 +12,11 @@ from enum import Enum
 from .version import __version__
 import subprocess as sp, re, os
 
+class BarCodeReaderException(Exception):
+    def __init__(self, message, filename=None, underlying=None):
+        self.message, self.filename, self.underlying = message, filename, underlying
+        super().__init__(message, filename, underlying)
+
 class BarCodeReader(object):
     cls = "com.google.zxing.client.j2se.CommandLineRunner"
 
@@ -34,11 +39,25 @@ class BarCodeReader(object):
             for pf in possible_formats:
                 cmd += ['--possible_formats', pf ]
 
-        p = sp.Popen(cmd, stdout=sp.PIPE, universal_newlines=False)
-        stdout, stderr = p.communicate()
+        try:
+            p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
+        except FileNotFoundError as e:
+            raise BarCodeReaderException("Java binary specified is not executable, or does not exist", self.java, e)
+        stdout, _ = p.communicate()
 
-        if not p.returncode:
-            return BarCode.parse(stdout)
+        if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',
+                              b'Exception in thread "main" java.lang.NoClassDefFoundError:')):
+            raise BarCodeReaderException("Java JARs not found in expected directory", self.classpath)
+        elif stdout.startswith(b'''Exception in thread "main" javax.imageio.IIOException: Can't get input stream from URL!'''):
+            raise BarCodeReaderException("Could not find image path", filename)
+        elif stdout.startswith(b'''Exception in thread "main" java.io.IOException: Could not load '''):
+            raise BarCodeReaderException("Java library could not read image; is it in a supported format?", filename)
+        elif stdout.startswith(b'''Exception '''):
+            raise BarCodeReaderException("Unknown Java exception: %s" % stdout)
+        elif p.returncode:
+            raise BarCodeReaderException("Unexpected subprocess return code %d" % p.returncode, self.java)
+
+        return BarCode.parse(stdout)
 
 class CLROutputBlock(Enum):
     UNKNOWN = 0
