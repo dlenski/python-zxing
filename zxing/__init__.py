@@ -44,7 +44,9 @@ class BarCodeReader(object):
         try:
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
         except FileNotFoundError as e:
-            raise BarCodeReaderException("Java binary specified is not executable, or does not exist", self.java, e)
+            raise BarCodeReaderException("Java binary specified does not exist", self.java, e)
+        except PermissionError as e:
+            raise BarCodeReaderException("Java binary specified is not executable", self.java, e)
         stdout, _ = p.communicate()
 
         if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',

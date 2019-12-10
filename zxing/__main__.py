@@ -3,7 +3,7 @@ from sys import stdout
 import argparse
 import csv
 
-from . import BarCodeReader, BarCode
+from . import BarCodeReader, BarCodeReaderException
 
 def main():
     p = argparse.ArgumentParser()
@@ -21,7 +21,10 @@ def main():
         wr.writerow(('Filename','Format','Type','Raw','Parsed'))
 
     for fn in args.image:
-        bc = bcr.decode(fn, try_harder=args.try_harder)
+        try:
+            bc = bcr.decode(fn, try_harder=args.try_harder)
+        except BarCodeReaderException as e:
+            p.error(e.message + (('\n\t' + e.filename) if e.filename else ''))
         if args.csv:
             wr.writerow((fn, bc.format, bc.type, bc.raw, bc.parsed) if bc else (fn, 'ERROR', None, None, None))
         else:

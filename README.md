@@ -28,7 +28,7 @@ The attributes of the decoded `BarCode` object are `raw`, `parsed`, `format`, `t
 [here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
 
 The `decode()` method accepts an image path and takes optional parameters `try_harder` (boolean) and `possible_formats` (list of formats to consider).
-If no barcode is found, it returns `None`.
+If no barcode is found, it returns `None`, and if it encounters an error it raises `BarCodeReaderException`.
 
 ## Command-line interface
 
