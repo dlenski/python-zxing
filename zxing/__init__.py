@@ -7,6 +7,7 @@
 #
 
 from __future__ import print_function
+from urllib.parse import quote
 from enum import Enum
 
 from .version import __version__
@@ -32,7 +33,8 @@ class BarCodeReader(object):
     def decode(self, filename, try_harder=False, possible_formats=None):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        cmd = [self.java, '-cp', self.classpath, self.cls, filename]
+        file_uri = 'file://' + quote(os.path.abspath(filename))
+        cmd = [self.java, '-cp', self.classpath, self.cls, file_uri]
         if try_harder:
             cmd.append('--try_harder')
         if possible_formats:
