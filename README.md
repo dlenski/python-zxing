@@ -22,13 +22,15 @@ The `BarCodeReader` class is used to decode images:
 >>> import zxing
 >>> reader = zxing.BarCodeReader()
 >>> barcode = reader.decode("test/barcodes/QR_CODE-easy.png")
+>>> print(barcode)
+BarCode(raw='This should be QR_CODE', parsed='This should be QR_CODE', format='QR_CODE', type='TEXT', points=[(15.0, 87.0), (15.0, 15.0), (87.0, 15.0), (75.0, 75.0)])
 ```
 
 The attributes of the decoded `BarCode` object are `raw`, `parsed`, `format`, `type`, and `points`. The list of formats which ZXing can decode is
 [here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
 
 The `decode()` method accepts an image path and takes optional parameters `try_harder` (boolean) and `possible_formats` (list of formats to consider).
-If no barcode is found, it returns `None`, and if it encounters an error it raises `BarCodeReaderException`.
+If no barcode is found, it returns `None`, and if it encounters any other recognizable error from the Java ZXing library, it raises `BarCodeReaderException`.
 
 ## Command-line interface
 

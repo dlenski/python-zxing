@@ -113,4 +113,5 @@ class BarCode(object):
         self.points = points
 
     def __repr__(self):
-        return '{}({!r}, {!r}, {!r}, {!r}, {!r})'.format(self.__class__.__name__, self.raw, self.parsed, self.format, self.type, self.points)
+        return '{}(raw={!r}, parsed={!r}, format={!r}, type={!r}, points={!r})'.format(
+            self.__class__.__name__, self.raw, self.parsed, self.format, self.type, self.points)
