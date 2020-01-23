@@ -9,6 +9,7 @@
 from __future__ import print_function
 from urllib.parse import quote
 from enum import Enum
+import pathlib
 
 from .version import __version__
 import subprocess as sp, re, os, posixpath
@@ -33,7 +34,7 @@ class BarCodeReader(object):
     def decode(self, filename, try_harder=False, possible_formats=None):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        file_uri = 'file://' + quote(posixpath.abspath(filename))
+        file_uri = pathlib.Path(os.path.abspath(filename)).as_uri() # fixed error with uri file
         cmd = [self.java, '-cp', self.classpath, self.cls, file_uri]
         if try_harder:
             cmd.append('--try_harder')
