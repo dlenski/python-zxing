@@ -31,13 +31,15 @@ class BarCodeReader(object):
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-    def decode(self, filename, try_harder=False, possible_formats=None):
+    def decode(self, filename, try_harder=False, products_only=False, possible_formats=None):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
         file_uri = pathlib.Path(filename).absolute().as_uri()
         cmd = [self.java, '-cp', self.classpath, self.cls, file_uri]
         if try_harder:
             cmd.append('--try_harder')
+        if products_only:
+            cmd.append('--products_only')
         if possible_formats:
             for pf in possible_formats:
                 cmd += ['--possible_formats', pf ]
