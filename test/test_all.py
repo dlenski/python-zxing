@@ -17,7 +17,7 @@ test_barcodes = [
     ( 'QR_CODE-png-but-wrong-extension.bmp', 'QR_CODE', 'This should be QR_CODE' ),
     ( 'QR_CODE-fun-with-whitespace.png', 'QR_CODE', '\n\r\t\r\r\r\n ' ),
     ( 'QR_CODE-screen_scraping_torture_test.png', 'QR_CODE',
-      '\n\\n¡Atención ☹! UTF-8 characters,\n embedded newline, &amp; trailing whitespace\t ' ),
+      '\n\\n¡Atención ☹! UTF-8 characters,\n\r embedded newlines,\r &&am&p;& trailing whitespace\t \r ' ),
 ]
 
 test_reader = None
