@@ -39,9 +39,20 @@ def test_decoding():
             raise AssertionError('Expected {!r} but got {!r}'.format(expected_format, dec.format))
 
 
+@with_setup(setup_reader)
+def test_decoding_multiple():
+    reader = zxing.BarCodeReader()
+    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_barcodes]
+    for dec, (filename, expected_format, expected_raw) in zip(reader.decode(filenames), test_barcodes):
+        if dec.raw != expected_raw:
+            raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
+        if dec.format != expected_format:
+            raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_format, dec.format))
+
+
 def test_parsing():
     dec = zxing.BarCode.parse("""
-file:default.png (format: FAKE_DATA, type: TEXT):
+file:///tmp/default.png (format: FAKE_DATA, type: TEXT):
 Raw result:
 Élan|\tthe barcode is taking off
 Parsed result:
@@ -53,6 +64,7 @@ Found 4 result points:
   Point 2: (201.0,198.0)
   Point 3: (205.23952,21.0)
 """.encode())
+    assert dec.uri == 'file:///tmp/default.png'
     assert dec.format == 'FAKE_DATA'
     assert dec.type == 'TEXT'
     assert dec.raw == 'Élan|\tthe barcode is taking off'
