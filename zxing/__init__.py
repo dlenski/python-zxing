@@ -9,7 +9,7 @@
 from __future__ import print_function
 from urllib.parse import quote
 from enum import Enum
-from binascii import b2a_base64
+from tempfile import NamedTemporaryFile
 import io
 import pathlib
 
@@ -42,18 +42,17 @@ class BarCodeReader(object):
         else:
             one_file = False
         file_uris = []
+        fps = []
         for filename in filenames:
-            if isinstance(filename, str):
-               file_uri = pathlib.Path(filename).absolute().as_uri()
-            else:
-                # file object
-               fp, filename = filename, filename.name
-               if filename.lower().endswith(('.jpeg', '.jpg')): mime = b'image/jpeg'
-               elif filename.lower().endswith('.gif'): mime = b'image/gif'
-               elif filename.lower().endswith(('.tiff', '.tif')): mime = b'image/tiff'
-               else: mime = b'image/png'
-               file_uri = b'data:%s;base64,%s' % (mime, b2a_base64(fp.read()))
-            file_uris.append(file_uri)
+            if isinstance(filename, io.IOBase):
+                 # file object
+                fp, (_, ext) = filename, os.path.splitext(filename.name)
+                f = NamedTemporaryFile(suffix=ext).__enter__()
+                filename = f.name
+                f.write(fp.read())
+                f.flush()
+                fps.append(f)
+            file_uris.append(pathlib.Path(filename).absolute().as_uri())
 
         cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
         if try_harder:
@@ -66,11 +65,14 @@ class BarCodeReader(object):
 
         try:
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
+            stdout, _ = p.communicate()
         except FileNotFoundError as e:
             raise BarCodeReaderException("Java binary specified (%s) does not exist" % self.java, self.java, e)
         except PermissionError as e:
             raise BarCodeReaderException("Java binary specified (%s) is not executable" % self.java, self.java, e)
-        stdout, stderr = p.communicate()
+        finally:
+            for fp in fps:
+                fp.close()
 
         if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',
                               b'Exception in thread "main" java.lang.NoClassDefFoundError:')):
@@ -90,7 +92,7 @@ class BarCodeReader(object):
         else:
             file_results = []
             for line in stdout.splitlines(True):
-                if line.startswith((b'file:///',b'data:image/',b'Exception')):
+                if line.startswith((b'file:///',b'Exception')):
                     file_results.append(line)
                 else:
                     file_results[-1] += line
