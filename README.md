@@ -29,7 +29,7 @@ BarCode(raw='This should be QR_CODE', parsed='This should be QR_CODE', format='Q
 The attributes of the decoded `BarCode` object are `raw`, `parsed`, `format`, `type`, and `points`. The list of formats which ZXing can decode is
 [here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
 
-The `decode()` method accepts an image path (or list of paths) and takes optional parameters `try_harder` (boolean), `possible_formats` (list of formats to consider), and `pure_barcode` (boolean).
+The `decode()` method accepts an image path or file object (or list thereof) and takes optional parameters `try_harder` (boolean), `possible_formats` (list of formats to consider), and `pure_barcode` (boolean).
 If no barcode is found, it returns `None`, and if it encounters any other recognizable error from the Java ZXing library, it raises `BarCodeReaderException`.
 
 ## Command-line interface

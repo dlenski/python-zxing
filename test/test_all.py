@@ -31,12 +31,17 @@ def test_decoding():
     global test_reader
     for filename, expected_format, expected_raw in test_barcodes:
         path = os.path.join(test_barcode_dir, filename)
-        logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
-        dec = test_reader.decode(path, pure_barcode=True)
-        if dec.raw != expected_raw:
-            raise AssertionError('Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
-        if dec.format != expected_format:
-            raise AssertionError('Expected {!r} but got {!r}'.format(expected_format, dec.format))
+        for method in ('', ' as file object'):
+            logging.debug('Trying to parse {}{}, expecting {!r}.'.format(path, method, expected_raw))
+            if not method:
+                dec = test_reader.decode(path, pure_barcode=True)
+            else:
+                with open(path, 'rb') as fp:
+                    dec = test_reader.decode(fp, pure_barcode=True)
+            if dec.raw != expected_raw:
+                raise AssertionError('Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
+            if dec.format != expected_format:
+                raise AssertionError('Expected {!r} but got {!r}'.format(expected_format, dec.format))
 
 
 @with_setup(setup_reader)

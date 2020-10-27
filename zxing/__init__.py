@@ -9,6 +9,8 @@
 from __future__ import print_function
 from urllib.parse import quote
 from enum import Enum
+from binascii import b2a_base64
+import io
 import pathlib
 
 from .version import __version__
@@ -34,12 +36,24 @@ class BarCodeReader(object):
     def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        if isinstance(filenames, str):
+        if isinstance(filenames, str) or isinstance(filenames, io.IOBase):
             one_file = True
             filenames = filenames,
         else:
             one_file = False
-        file_uris = [ pathlib.Path(f).absolute().as_uri() for f in filenames ]
+        file_uris = []
+        for filename in filenames:
+            if isinstance(filename, str):
+               file_uri = pathlib.Path(filename).absolute().as_uri()
+            else:
+                # file object
+               fp, filename = filename, filename.name
+               if filename.lower().endswith(('.jpeg', '.jpg')): mime = b'image/jpeg'
+               elif filename.lower().endswith('.gif'): mime = b'image/gif'
+               elif filename.lower().endswith(('.tiff', '.tif')): mime = b'image/tiff'
+               else: mime = b'image/png'
+               file_uri = b'data:%s;base64,%s' % (mime, b2a_base64(fp.read()))
+            file_uris.append(file_uri)
 
         cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
         if try_harder:
@@ -76,7 +90,7 @@ class BarCodeReader(object):
         else:
             file_results = []
             for line in stdout.splitlines(True):
-                if line.startswith((b'file:///',b'Exception')):
+                if line.startswith((b'file:///',b'data:image/',b'Exception')):
                     file_results.append(line)
                 else:
                     file_results[-1] += line
