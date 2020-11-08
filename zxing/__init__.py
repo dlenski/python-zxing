@@ -61,7 +61,8 @@ class BarCodeReader(object):
         if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',
                               b'Exception in thread "main" java.lang.NoClassDefFoundError:')):
             raise BarCodeReaderException("Java JARs not found in classpath (%s)" % self.classpath, self.classpath)
-        elif stdout.startswith(b'''Exception in thread "main" javax.imageio.IIOException: Can't get input stream from URL!'''):
+        elif stdout.startswith((b'''Exception in thread "main" javax.imageio.IIOException: Can't get input stream from URL!''',
+                                b'''Exception in thread "main" java.util.concurrent.ExecutionException: javax.imageio.IIOException: Can't get input stream from URL!''')):
             raise BarCodeReaderException("Could not find image path: %s" % filenames, filenames)
         elif stdout.startswith(b'''Exception in thread "main" java.io.IOException: Could not load '''):
             raise BarCodeReaderException("Java library could not read image; is it in a supported format?", filenames)
