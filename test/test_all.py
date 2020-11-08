@@ -32,7 +32,7 @@ def test_decoding():
     for filename, expected_format, expected_raw in test_barcodes:
         path = os.path.join(test_barcode_dir, filename)
         logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
-        dec = test_reader.decode(path)
+        dec = test_reader.decode(path, pure_barcode=True)
         if dec.raw != expected_raw:
             raise AssertionError('Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
         if dec.format != expected_format:
@@ -43,7 +43,7 @@ def test_decoding():
 def test_decoding_multiple():
     reader = zxing.BarCodeReader()
     filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_barcodes]
-    for dec, (filename, expected_format, expected_raw) in zip(reader.decode(filenames), test_barcodes):
+    for dec, (filename, expected_format, expected_raw) in zip(reader.decode(filenames, pure_barcode=True), test_barcodes):
         if dec.raw != expected_raw:
             raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
         if dec.format != expected_format:
@@ -79,7 +79,7 @@ def test_possible_formats():
     for filename, expected_format, expected_raw in test_barcodes:
         path = os.path.join(test_barcode_dir, filename)
         incomplete_formats = all_test_formats - {expected_format}
-        dec = test_reader.decode(path, possible_formats=incomplete_formats)
+        dec = test_reader.decode(path, possible_formats=incomplete_formats, pure_barcode=True)
         if dec is not None:
             raise AssertionError('Tried to decode {}-format barcode with possible_formats={!r}; expected failure, but got result in {} format'.format(
                 expected_format, incomplete_formats, dec.format))
