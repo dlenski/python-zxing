@@ -31,13 +31,22 @@ class BarCodeReader(object):
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-    def decode(self, filename, try_harder=False, products_only=False, possible_formats=None):
+
+    def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        file_uri = pathlib.Path(filename).absolute().as_uri()
-        cmd = [self.java, '-cp', self.classpath, self.cls, file_uri]
+        if isinstance(filenames, str):
+            one_file = True
+            filenames = filenames,
+        else:
+            one_file = False
+        file_uris = [ pathlib.Path(f).absolute().as_uri() for f in filenames ]
+
+        cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
         if try_harder:
             cmd.append('--try_harder')
+        if pure_barcode:
+            cmd.append('--pure_barcode')
         if products_only:
             cmd.append('--products_only')
         if possible_formats:
@@ -47,24 +56,43 @@ class BarCodeReader(object):
         try:
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
         except FileNotFoundError as e:
-            raise BarCodeReaderException("Java binary specified does not exist", self.java, e)
+            raise BarCodeReaderException("Java binary specified (%s) does not exist" % self.java, self.java, e)
         except PermissionError as e:
-            raise BarCodeReaderException("Java binary specified is not executable", self.java, e)
-        stdout, _ = p.communicate()
+            raise BarCodeReaderException("Java binary specified (%s) is not executable" % self.java, self.java, e)
+        stdout, stderr = p.communicate()
 
         if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',
                               b'Exception in thread "main" java.lang.NoClassDefFoundError:')):
-            raise BarCodeReaderException("Java JARs not found in expected directory", self.classpath)
-        elif stdout.startswith(b'''Exception in thread "main" javax.imageio.IIOException: Can't get input stream from URL!'''):
-            raise BarCodeReaderException("Could not find image path", filename)
+            raise BarCodeReaderException("Java JARs not found in classpath (%s)" % self.classpath, self.classpath)
+        elif stdout.startswith((b'''Exception in thread "main" javax.imageio.IIOException: Can't get input stream from URL!''',
+                                b'''Exception in thread "main" java.util.concurrent.ExecutionException: javax.imageio.IIOException: Can't get input stream from URL!''')):
+            raise BarCodeReaderException("Could not find image path: %s" % filenames, filenames)
         elif stdout.startswith(b'''Exception in thread "main" java.io.IOException: Could not load '''):
-            raise BarCodeReaderException("Java library could not read image; is it in a supported format?", filename)
+            raise BarCodeReaderException("Java library could not read image; is it in a supported format?", filenames)
         elif stdout.startswith(b'''Exception '''):
             raise BarCodeReaderException("Unknown Java exception: %s" % stdout)
         elif p.returncode:
-            raise BarCodeReaderException("Unexpected subprocess return code %d" % p.returncode, self.java)
+            raise BarCodeReaderException("Unexpected Java subprocess return code %d" % p.returncode, self.java)
 
-        return BarCode.parse(stdout)
+        if p.returncode:
+            codes = [ None for fn in filenames ]
+        else:
+            file_results = []
+            for line in stdout.splitlines(True):
+                if line.startswith((b'file:///',b'Exception')):
+                    file_results.append(line)
+                else:
+                    file_results[-1] += line
+            codes = [ BarCode.parse(result) for result in file_results ]
+
+        if one_file:
+            return codes[0]
+        else:
+            # zxing (insanely) randomly reorders the output blocks, so we have to put them back in the
+            # expected order, based on their URIs
+            d = {c.uri: c for c in codes}
+            return [d[f] for f in file_uris]
+
 
 class CLROutputBlock(Enum):
     UNKNOWN = 0
@@ -76,7 +104,7 @@ class BarCode(object):
     @classmethod
     def parse(cls, zxing_output):
         block = CLROutputBlock.UNKNOWN
-        format = type = None
+        uri = format = type = None
         raw = parsed = b''
         points = []
 
@@ -84,9 +112,9 @@ class BarCode(object):
             if block==CLROutputBlock.UNKNOWN:
                 if l.endswith(b': No barcode found\n'):
                     return None
-                m = re.search(rb"format:\s*([^,]+),\s*type:\s*([^)]+)", l)
+                m = re.match(rb"(\S+) \(format:\s*([^,]+),\s*type:\s*([^)]+)\)", l)
                 if m:
-                    format, type = m.group(1).decode(), m.group(2).decode()
+                    uri, format, type = m.group(1).decode(), m.group(2).decode(), m.group(3).decode()
                 elif l.startswith(b"Raw result:"):
                     block = CLROutputBlock.RAW
             elif block==CLROutputBlock.RAW:
@@ -106,15 +134,16 @@ class BarCode(object):
 
         raw = raw[:-1].decode()
         parsed = parsed[:-1].decode()
-        return cls(format, type, raw, parsed, points)
+        return cls(uri, format, type, raw, parsed, points)
 
-    def __init__(self, format, type, raw, parsed, points):
+    def __init__(self, uri, format, type, raw, parsed, points):
         self.raw = raw
         self.parsed = parsed
+        self.uri = uri
         self.format = format
         self.type = type
         self.points = points
 
     def __repr__(self):
-        return '{}(raw={!r}, parsed={!r}, format={!r}, type={!r}, points={!r})'.format(
-            self.__class__.__name__, self.raw, self.parsed, self.format, self.type, self.points)
+        return '{}(raw={!r}, parsed={!r}, uri={!r}, format={!r}, type={!r}, points={!r})'.format(
+            self.__class__.__name__, self.raw, self.parsed, self.uri, self.format, self.type, self.points)

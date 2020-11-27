@@ -17,7 +17,7 @@ test_barcodes = [
     ( 'QR_CODE-png-but-wrong-extension.bmp', 'QR_CODE', 'This should be QR_CODE' ),
     ( 'QR_CODE-fun-with-whitespace.png', 'QR_CODE', '\n\r\t\r\r\r\n ' ),
     ( 'QR_CODE-screen_scraping_torture_test.png', 'QR_CODE',
-      '\n\\n¡Atención ☹! UTF-8 characters,\n embedded newline, &amp; trailing whitespace\t ' ),
+      '\n\\n¡Atención ☹! UTF-8 characters,\n\r embedded newlines,\r &&am&p;& trailing whitespace\t \r ' ),
 ]
 
 test_reader = None
@@ -32,16 +32,27 @@ def test_decoding():
     for filename, expected_format, expected_raw in test_barcodes:
         path = os.path.join(test_barcode_dir, filename)
         logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
-        dec = test_reader.decode(path)
+        dec = test_reader.decode(path, pure_barcode=True)
         if dec.raw != expected_raw:
             raise AssertionError('Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
         if dec.format != expected_format:
             raise AssertionError('Expected {!r} but got {!r}'.format(expected_format, dec.format))
 
 
+@with_setup(setup_reader)
+def test_decoding_multiple():
+    reader = zxing.BarCodeReader()
+    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_barcodes]
+    for dec, (filename, expected_format, expected_raw) in zip(reader.decode(filenames, pure_barcode=True), test_barcodes):
+        if dec.raw != expected_raw:
+            raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
+        if dec.format != expected_format:
+            raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_format, dec.format))
+
+
 def test_parsing():
     dec = zxing.BarCode.parse("""
-file:default.png (format: FAKE_DATA, type: TEXT):
+file:///tmp/default.png (format: FAKE_DATA, type: TEXT):
 Raw result:
 Élan|\tthe barcode is taking off
 Parsed result:
@@ -53,6 +64,7 @@ Found 4 result points:
   Point 2: (201.0,198.0)
   Point 3: (205.23952,21.0)
 """.encode())
+    assert dec.uri == 'file:///tmp/default.png'
     assert dec.format == 'FAKE_DATA'
     assert dec.type == 'TEXT'
     assert dec.raw == 'Élan|\tthe barcode is taking off'
@@ -67,7 +79,7 @@ def test_possible_formats():
     for filename, expected_format, expected_raw in test_barcodes:
         path = os.path.join(test_barcode_dir, filename)
         incomplete_formats = all_test_formats - {expected_format}
-        dec = test_reader.decode(path, possible_formats=incomplete_formats)
+        dec = test_reader.decode(path, possible_formats=incomplete_formats, pure_barcode=True)
         if dec is not None:
             raise AssertionError('Tried to decode {}-format barcode with possible_formats={!r}; expected failure, but got result in {} format'.format(
                 expected_format, incomplete_formats, dec.format))

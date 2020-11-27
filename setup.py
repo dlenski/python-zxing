@@ -36,15 +36,15 @@ else:
 
 ########################################
 
-def download_java_files():
-    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.4.0/javase-3.4.0.jar',
-             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.4.0/core-3.4.0.jar',
-             'java/jcommander.jar': 'https://repo1.maven.org/maven2/com/beust/jcommander/1.72/jcommander-1.72.jar'}
+def download_java_files(force=False):
+    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.4.1/javase-3.4.1.jar',
+             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.4.1/core-3.4.1.jar',
+             'java/jcommander.jar': 'https://repo1.maven.org/maven2/com/beust/jcommander/1.78/jcommander-1.78.jar'}
 
     for fn, url in files.items():
         p = path.join(path.dirname(__file__), 'zxing', fn)
         d = path.dirname(p)
-        if access(p, R_OK):
+        if not force and access(p, R_OK):
             print("Already have %s." % p)
         else:
             print("Downloading %s from %s ..." % (p, url))

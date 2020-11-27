@@ -12,7 +12,7 @@ It will allow you to read and decode barcode images from Python.
 Use the Python 3 version of pip (usually invoked via `pip3`) to install: `pip3 install zxing`
 
 * You'll neeed to have a recent `java` binary somewhere in your path. (Tested with OpenJDK.)
-* pip will automatically download the relevant [JAR](https://en.wikipedia.org/wiki/JAR_(file_format)) files for the Java ZXing libraries (currently v3.4.0)
+* pip will automatically download the relevant [JAR](https://en.wikipedia.org/wiki/JAR_(file_format)) files for the Java ZXing libraries (currently v3.4.1)
 
 ## Usage
 
@@ -29,7 +29,7 @@ BarCode(raw='This should be QR_CODE', parsed='This should be QR_CODE', format='Q
 The attributes of the decoded `BarCode` object are `raw`, `parsed`, `format`, `type`, and `points`. The list of formats which ZXing can decode is
 [here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
 
-The `decode()` method accepts an image path and takes optional parameters `try_harder` (boolean) and `possible_formats` (list of formats to consider).
+The `decode()` method accepts an image path (or list of paths) and takes optional parameters `try_harder` (boolean), `possible_formats` (list of formats to consider), and `pure_barcode` (boolean).
 If no barcode is found, it returns `None`, and if it encounters any other recognizable error from the Java ZXing library, it raises `BarCodeReaderException`.
 
 ## Command-line interface
