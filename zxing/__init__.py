@@ -31,7 +31,6 @@ class BarCodeReader(object):
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-
     def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
