@@ -3,5 +3,4 @@ build/*
 dist
 dist/*
 *.pyc
-zxing/java
-zxing/version.py
+zxing/java/
