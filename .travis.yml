@@ -2,7 +2,7 @@ notifications:
   email:
     false
 
-dist: trusty
+dist: xenial
 sudo: false
 
 language: python
