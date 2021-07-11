@@ -31,7 +31,7 @@ class BarCodeReader(object):
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-    def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
+    def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False, multi=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
         if isinstance(filenames, str):
@@ -44,6 +44,9 @@ class BarCodeReader(object):
         cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
         if try_harder:
             cmd.append('--try_harder')
+        if multi:
+            cmd.append('--multi')
+            one_file = False
         if pure_barcode:
             cmd.append('--pure_barcode')
         if products_only:
@@ -89,9 +92,13 @@ class BarCodeReader(object):
         else:
             # zxing (insanely) randomly reorders the output blocks, so we have to put them back in the
             # expected order, based on their URIs
-            d = {c.uri: c for c in codes}
-            return [d[f] for f in file_uris]
+            return sorted(codes, key=lambda barcode: barcode and barcode.uri)
 
+    def decode_as_list(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False, multi=False):
+        result = self.decode(filenames, try_harder, possible_formats, pure_barcode, products_only, multi)
+        if isinstance(result, list):
+            return result
+        return [result]
 
 class CLROutputBlock(Enum):
     UNKNOWN = 0

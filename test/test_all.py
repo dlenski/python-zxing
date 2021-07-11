@@ -55,12 +55,27 @@ def test_possible_formats():
 @with_setup(setup_reader)
 def test_decoding_multiple():
     reader = zxing.BarCodeReader()
-    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_barcodes]
-    for dec, (filename, expected_format, expected_raw) in zip(reader.decode(filenames, pure_barcode=True), test_barcodes):
+    for filename, expected_format, expected_raw in test_barcodes:
+        full_filename = os.path.join(test_barcode_dir, filename)
+        dec = reader.decode(full_filename, pure_barcode=True)
         if dec.raw != expected_raw:
             raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
         if dec.format != expected_format:
             raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_format, dec.format))
+
+
+@with_setup(setup_reader)
+def test_multi():
+    reader = zxing.BarCodeReader()
+    filename = "multi.png"
+    full_filename = os.path.join(test_barcode_dir, filename)
+    dec = reader.decode_as_list(full_filename, multi=True)
+
+    expected = ["This should be QR_CODE", "This should be PDF_417"]
+    actual = [barcode.parsed for barcode in dec]
+
+    if expected != actual:
+        raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected, actual))
 
 
 def test_parsing():
