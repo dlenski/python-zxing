@@ -1,7 +1,7 @@
 # python-zxing
 
 [![PyPI](https://img.shields.io/pypi/v/zxing.svg)](https://pypi.python.org/pypi/zxing)
-[![Build Status](https://api.travis-ci.org/dlenski/python-zxing.png)](https://travis-ci.org/dlenski/python-zxing)
+[![Build Status](https://api.travis-ci.com/dlenski/python-zxing.svg)](https://travis-ci.com/dlenski/python-zxing)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 This is a wrapper for the [ZXing barcode library](https://github.com/zxing/zxing). (It's a "slightly less quick-and-dirty" fork of [oostendo/python-zxing](https://github.com/oostendo/python-zxing).)
@@ -21,6 +21,8 @@ The `BarCodeReader` class is used to decode images:
 ```python
 >>> import zxing
 >>> reader = zxing.BarCodeReader()
+>>> print(reader.zxing_version, reader.zxing_version_info)
+3.4.1 (3, 4, 1)
 >>> barcode = reader.decode("test/barcodes/QR_CODE-easy.png")
 >>> print(barcode)
 BarCode(raw='This should be QR_CODE', parsed='This should be QR_CODE', format='QR_CODE', type='TEXT', points=[(15.0, 87.0), (15.0, 15.0), (87.0, 15.0), (75.0, 75.0)])

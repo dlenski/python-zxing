@@ -10,6 +10,7 @@ from __future__ import print_function
 from urllib.parse import quote
 from enum import Enum
 import pathlib
+import zipfile
 
 from .version import __version__
 import subprocess as sp, re, os
@@ -24,12 +25,20 @@ class BarCodeReader(object):
 
     def __init__(self, classpath=None, java=None):
         self.java = java or 'java'
+        self.zxing_version = self.zxing_version_info = None
         if classpath:
             self.classpath = classpath if isinstance(classpath, str) else ':'.join(classpath)
         elif "ZXING_CLASSPATH" in os.environ:
             self.classpath = os.environ.get("ZXING_CLASSPATH","")
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
+
+        with zipfile.ZipFile(os.path.join(os.path.dirname(__file__), 'java', 'core.jar')) as c:
+            for line in c.open('META-INF/MANIFEST.MF'):
+                if line.startswith(b'Bundle-Version: '):
+                    self.zxing_version = line.split(b' ', 1)[1].strip().decode()
+                    self.zxing_version_info = tuple(int(n) for n in self.zxing_version.split('.'))
+                    break
 
     def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats

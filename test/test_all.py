@@ -26,6 +26,14 @@ def setup_reader():
     if test_reader is None:
         test_reader = zxing.BarCodeReader()
 
+
+@with_setup(setup_reader)
+def test_version():
+    global test_reader
+    assert test_reader.zxing_version is not None
+    assert '.'.join(map(str, test_reader.zxing_version_info)) == test_reader.zxing_version
+
+
 @with_setup(setup_reader)
 def _check_decoding(filename, expected_format, expected_raw, extra={}):
     global test_reader
