@@ -98,8 +98,8 @@ class BarCodeReader(object):
         else:
             # zxing (insanely) randomly reorders the output blocks, so we have to put them back in the
             # expected order, based on their URIs
-            d = {c.uri: c for c in codes}
-            return [d[f] for f in file_uris]
+            d = {c.uri: c for c in codes if c is not None} # there can be None in codes
+            return [d[f] if f in d else None for f in file_uris]
 
 
 class CLROutputBlock(Enum):
