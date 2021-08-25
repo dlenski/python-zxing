@@ -186,20 +186,28 @@ class BarCode(object):
                 if m:
                     points.append((float(m.group(1)), float(m.group(2))))
 
-        raw = raw[:-1].decode()
-        parsed = parsed[:-1].decode()
-        return cls(uri, format, type, raw, parsed, points)
+        raw_bytes = raw[:-1]
+        try:
+            raw = raw[:-1].decode()
+        except UnicodeDecodeError:
+            raw = None
+        try:
+            parsed = parsed[:-1].decode()
+        except UnicodeDecodeError:
+            parsed = None
+        return cls(uri, format, type, raw, parsed, points, raw_bytes)
 
     def __bool__(self):
         return bool(self.raw)
 
-    def __init__(self, uri, format=None, type=None, raw=None, parsed=None, points=None):
+    def __init__(self, uri, format=None, type=None, raw=None, parsed=None, points=None, raw_bytes=None):
         self.raw = raw
         self.parsed = parsed
         self.uri = uri
         self.format = format
         self.type = type
         self.points = points
+        self.raw_bytes = raw_bytes
 
     @property
     def path(self):
@@ -209,7 +217,7 @@ class BarCode(object):
             pass
 
     def __repr__(self):
-        return '{}(raw={!r}, parsed={!r}, {}={!r}, format={!r}, type={!r}, points={!r})'.format(
+        return '{}(raw={!r}, parsed={!r}, {}={!r}, format={!r}, type={!r}, points={!r}, raw_bytes={!r})'.format(
             self.__class__.__name__, self.raw, self.parsed,
             'path' if self.path else 'uri', self.path or self.uri,
-            self.format, self.type, self.points)
+            self.format, self.type, self.points, self.raw_bytes)
