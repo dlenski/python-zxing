@@ -1,7 +1,7 @@
 # python-zxing
 
 [![PyPI](https://img.shields.io/pypi/v/zxing.svg)](https://pypi.python.org/pypi/zxing)
-[![Build Status](https://api.travis-ci.com/dlenski/python-zxing.svg)](https://travis-ci.com/dlenski/python-zxing)
+[![Build Status](https://github.com/dlenski/python-zxing/workflows/test_and_release/badge.svg)](https://github.com/dlenski/python-zxing/actions?query=workflow%3Atest_and_release)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 This is a wrapper for the [ZXing barcode library](https://github.com/zxing/zxing). (It's a "slightly less quick-and-dirty" fork of [oostendo/python-zxing](https://github.com/oostendo/python-zxing).)
@@ -11,7 +11,7 @@ It will allow you to read and decode barcode images from Python.
 
 Use the Python 3 version of pip (usually invoked via `pip3`) to install: `pip3 install zxing`
 
-* You'll neeed to have a recent `java` binary somewhere in your path. (Tested with OpenJDK.)
+* You'll neeed to have a recent `java` binary somewhere in your path. (Tested with OpenJDK v7, v8, v11.)
 * pip will automatically download the relevant [JAR](https://en.wikipedia.org/wiki/JAR_(file_format)) files for the Java ZXing libraries (currently v3.4.1)
 
 ## Usage

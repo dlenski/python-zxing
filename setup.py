@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
-from urllib.request import urlretrieve
+import sys
+from os import R_OK, access, makedirs, path
 from urllib.error import URLError
-from os import access, path, makedirs, R_OK
-import subprocess as sp
-import sys, re
+from urllib.request import urlretrieve
+
+from setuptools import setup
 
 if not sys.version_info[0] == 3:
     sys.exit("Python 2.x is not supported; Python 3.x is required.")
@@ -21,6 +21,7 @@ with open(version_py, 'r') as fh:
 
 ########################################
 
+
 def download_java_files(force=False):
     files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.4.1/javase-3.4.1.jar',
              'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.4.1/core-3.4.1.jar',
@@ -34,11 +35,12 @@ def download_java_files(force=False):
         else:
             print("Downloading %s from %s ..." % (p, url))
             try:
-                makedirs(d, exist_ok = True)
+                makedirs(d, exist_ok=True)
                 urlretrieve(url, p)
             except (OSError, URLError) as e:
                 raise
     return list(files.keys())
+
 
 setup(
     name='zxing',
@@ -48,9 +50,11 @@ setup(
     url="https://github.com/dlenski/python-zxing",
     author='Daniel Lenski',
     author_email='dlenski@gmail.com',
-    packages = ['zxing'],
-    package_data = {'zxing': download_java_files()},
-    entry_points = {'console_scripts': ['zxing=zxing.__main__:main']},
-    test_suite = 'nose.collector',
+    packages=['zxing'],
+    package_data={'zxing': download_java_files()},
+    entry_points={'console_scripts': ['zxing=zxing.__main__:main']},
+    install_requires=open('requirements.txt').readlines(),
+    tests_require=open('requirements-test.txt').readlines(),
+    test_suite='nose.collector',
     license='LGPL v3 or later',
 )

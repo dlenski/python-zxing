@@ -6,19 +6,21 @@
 #  library:  http://code.google.com/p/zxing/
 #
 
-from __future__ import print_function
-from urllib.parse import quote
-from enum import Enum
+import os
 import pathlib
+import re
+import subprocess as sp
 import zipfile
+from enum import Enum
 
-from .version import __version__
-import subprocess as sp, re, os
+from .version import __version__  # noqa: F401
+
 
 class BarCodeReaderException(Exception):
     def __init__(self, message, filename=None, underlying=None):
         self.message, self.filename, self.underlying = message, filename, underlying
         super().__init__(message, filename, underlying)
+
 
 class BarCodeReader(object):
     cls = "com.google.zxing.client.j2se.CommandLineRunner"
@@ -29,7 +31,7 @@ class BarCodeReader(object):
         if classpath:
             self.classpath = classpath if isinstance(classpath, str) else ':'.join(classpath)
         elif "ZXING_CLASSPATH" in os.environ:
-            self.classpath = os.environ.get("ZXING_CLASSPATH","")
+            self.classpath = os.environ.get("ZXING_CLASSPATH", "")
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
@@ -48,7 +50,7 @@ class BarCodeReader(object):
             filenames = filenames,
         else:
             one_file = False
-        file_uris = [ pathlib.Path(f).absolute().as_uri() for f in filenames ]
+        file_uris = [pathlib.Path(f).absolute().as_uri() for f in filenames]
 
         cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
         if try_harder:
@@ -59,7 +61,7 @@ class BarCodeReader(object):
             cmd.append('--products_only')
         if possible_formats:
             for pf in possible_formats:
-                cmd += ['--possible_formats', pf ]
+                cmd += ['--possible_formats', pf]
 
         try:
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
@@ -83,15 +85,15 @@ class BarCodeReader(object):
             raise BarCodeReaderException("Unexpected Java subprocess return code %d" % p.returncode, self.java)
 
         if p.returncode:
-            codes = [ None for fn in filenames ]
+            codes = [None for fn in filenames]
         else:
             file_results = []
             for line in stdout.splitlines(True):
-                if line.startswith((b'file:///',b'Exception')):
+                if line.startswith((b'file:///', b'Exception')):
                     file_results.append(line)
                 else:
                     file_results[-1] += line
-            codes = [ BarCode.parse(result) for result in file_results ]
+            codes = [BarCode.parse(result) for result in file_results]
 
         if one_file:
             return codes[0]
@@ -108,6 +110,7 @@ class CLROutputBlock(Enum):
     PARSED = 2
     POINTS = 3
 
+
 class BarCode(object):
     @classmethod
     def parse(cls, zxing_output):
@@ -117,7 +120,7 @@ class BarCode(object):
         points = []
 
         for l in zxing_output.splitlines(True):
-            if block==CLROutputBlock.UNKNOWN:
+            if block == CLROutputBlock.UNKNOWN:
                 if l.endswith(b': No barcode found\n'):
                     return None
                 m = re.match(rb"(\S+) \(format:\s*([^,]+),\s*type:\s*([^)]+)\)", l)
@@ -125,17 +128,17 @@ class BarCode(object):
                     uri, format, type = m.group(1).decode(), m.group(2).decode(), m.group(3).decode()
                 elif l.startswith(b"Raw result:"):
                     block = CLROutputBlock.RAW
-            elif block==CLROutputBlock.RAW:
+            elif block == CLROutputBlock.RAW:
                 if l.startswith(b"Parsed result:"):
                     block = CLROutputBlock.PARSED
                 else:
                     raw += l
-            elif block==CLROutputBlock.PARSED:
+            elif block == CLROutputBlock.PARSED:
                 if re.match(rb"Found\s+\d+\s+result\s+points?", l):
                     block = CLROutputBlock.POINTS
                 else:
                     parsed += l
-            elif block==CLROutputBlock.POINTS:
+            elif block == CLROutputBlock.POINTS:
                 m = re.match(rb"\s*Point\s*\d+:\s*\(([\d.]+),([\d.]+)\)", l)
                 if m:
                     points.append((float(m.group(1)), float(m.group(2))))
