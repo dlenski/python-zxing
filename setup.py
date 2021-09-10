@@ -45,7 +45,7 @@ def download_java_files(force=False):
 setup(
     name='zxing',
     version=version_pep,
-    description="wrapper for zebra crossing (zxing) barcode library",
+    description="Wrapper for decoding/reading barcodes with ZXing (Zebra Crossing) library",
     long_description="More information: https://github.com/dlenski/python-zxing",
     url="https://github.com/dlenski/python-zxing",
     author='Daniel Lenski',
@@ -57,4 +57,18 @@ setup(
     tests_require=open('requirements-test.txt').readlines(),
     test_suite='nose.collector',
     license='LGPL v3 or later',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
+        'Topic :: Multimedia :: Graphics :: Capture',
+        'Topic :: Scientific/Engineering :: Image Recognition',
+        'Topic :: Software Development :: Libraries :: Java Libraries',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Utilities',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+    ],
 )
