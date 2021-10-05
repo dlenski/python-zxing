@@ -41,7 +41,7 @@ def download_java_files(force=False):
     return list(files.keys())
 
 setup(
-    name='zxing',
+    name='zxingmod',
     version=version_pep,
     description="wrapper for zebra crossing (zxing) barcode library",
     long_description="More information: https://github.com/dlenski/python-zxing",
