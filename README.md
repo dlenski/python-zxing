@@ -7,7 +7,6 @@
 This is a wrapper for the [ZXing barcode library](https://github.com/zxing/zxing). (It's a "slightly less quick-and-dirty" fork of [oostendo/python-zxing](https://github.com/oostendo/python-zxing).)
 It will allow you to read and decode barcode images from Python.
 
-
 ## Dependencies and installation
 
 Use the Python 3 version of pip (usually invoked via `pip3`) to install: `pip3 install zxing`
