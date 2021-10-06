@@ -75,7 +75,7 @@ def test_decoding_multiple():
 
 def test_parsing():
     dec = zxing.BarCode.parse("""
-file:///tmp/default.png (format: FAKE_DATA, type: TEXT):
+file:///tmp/default%20file.png (format: FAKE_DATA, type: TEXT):
 Raw result:
 Élan|\tthe barcode is taking off
 Parsed result:
@@ -87,7 +87,8 @@ Found 4 result points:
   Point 2: (201.0,198.0)
   Point 3: (205.23952,21.0)
 """.encode())
-    assert dec.uri == 'file:///tmp/default.png'
+    assert dec.uri == 'file:///tmp/default%20file.png'
+    assert dec.path == '/tmp/default file.png'
     assert dec.format == 'FAKE_DATA'
     assert dec.type == 'TEXT'
     assert dec.raw == 'Élan|\tthe barcode is taking off'

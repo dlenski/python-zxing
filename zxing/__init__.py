@@ -168,6 +168,15 @@ class BarCode(object):
         self.type = type
         self.points = points
 
+    @property
+    def path(self):
+        try:
+            return file_uri_to_path(self.uri)
+        except ValueError:
+            pass
+
     def __repr__(self):
-        return '{}(raw={!r}, parsed={!r}, uri={!r}, format={!r}, type={!r}, points={!r})'.format(
-            self.__class__.__name__, self.raw, self.parsed, self.uri, self.format, self.type, self.points)
+        return '{}(raw={!r}, parsed={!r}, {}={!r}, format={!r}, type={!r}, points={!r})'.format(
+            self.__class__.__name__, self.raw, self.parsed,
+            'path' if self.path else 'uri', self.path or self.uri,
+            self.format, self.type, self.points)
