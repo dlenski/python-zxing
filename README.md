@@ -32,7 +32,7 @@ The attributes of the decoded `BarCode` object are `raw`, `parsed`, `path`, `for
 [here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
 
 The `decode()` method accepts an image path (or list of paths) and takes optional parameters `try_harder` (boolean), `possible_formats` (list of formats to consider), and `pure_barcode` (boolean).
-If no barcode is found, it returns a `False`-y `BarCode` object with all fields except `uri` set to `None`.
+If no barcode is found, it returns a `False`-y `BarCode` object with all fields except `path` set to `None`.
 If it encounters any other recognizable error from the Java ZXing library, it raises `BarCodeReaderException`.
 
 ## Command-line interface
