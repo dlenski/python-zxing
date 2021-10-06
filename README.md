@@ -25,10 +25,10 @@ The `BarCodeReader` class is used to decode images:
 3.4.1 (3, 4, 1)
 >>> barcode = reader.decode("test/barcodes/QR_CODE-easy.png")
 >>> print(barcode)
-BarCode(raw='This should be QR_CODE', parsed='This should be QR_CODE', format='QR_CODE', type='TEXT', points=[(15.0, 87.0), (15.0, 15.0), (87.0, 15.0), (75.0, 75.0)])
+BarCode(raw='This should be QR_CODE', parsed='This should be QR_CODE', uri='file:///path/to/test/barcodes/QR_CODE-easy.png, format='QR_CODE', type='TEXT', points=[(15.0, 87.0), (15.0, 15.0), (87.0, 15.0), (75.0, 75.0)])
 ```
 
-The attributes of the decoded `BarCode` object are `raw`, `parsed`, `format`, `type`, and `points`. The list of formats which ZXing can decode is
+The attributes of the decoded `BarCode` object are `raw`, `parsed`, `uri`, `format`, `type`, and `points`. The list of formats which ZXing can decode is
 [here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
 
 The `decode()` method accepts an image path (or list of paths) and takes optional parameters `try_harder` (boolean), `possible_formats` (list of formats to consider), and `pure_barcode` (boolean).
