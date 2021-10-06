@@ -31,7 +31,7 @@ def main():
             wr.writerow((fn, bc.format, bc.type, bc.raw, bc.parsed) if bc else (fn, 'ERROR', None, None, None))
         else:
             print("%s\n%s" % (fn, '=' * len(fn)))
-            if bc is None:
+            if not bc:
                 print("  ERROR: Failed to decode barcode.")
             else:
                 print("  Decoded %s barcode in %s format." % (bc.type, bc.format))

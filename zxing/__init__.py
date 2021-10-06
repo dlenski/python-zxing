@@ -135,7 +135,7 @@ class BarCode(object):
         for l in zxing_output.splitlines(True):
             if block == CLROutputBlock.UNKNOWN:
                 if l.endswith(b': No barcode found\n'):
-                    return None
+                    return cls(l.rsplit(b':', 1)[0].decode(), None, None, None, None, None)
                 m = re.match(rb"(\S+) \(format:\s*([^,]+),\s*type:\s*([^)]+)\)", l)
                 if m:
                     uri, format, type = m.group(1).decode(), m.group(2).decode(), m.group(3).decode()
@@ -160,7 +160,10 @@ class BarCode(object):
         parsed = parsed[:-1].decode()
         return cls(uri, format, type, raw, parsed, points)
 
-    def __init__(self, uri, format, type, raw, parsed, points):
+    def __bool__(self):
+        return bool(self.raw)
+
+    def __init__(self, uri, format=None, type=None, raw=None, parsed=None, points=None):
         self.raw = raw
         self.parsed = parsed
         self.uri = uri

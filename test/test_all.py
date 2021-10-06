@@ -20,6 +20,12 @@ test_barcodes = [
     ('QR_CODE-screen_scraping_torture_test.png', 'QR_CODE', '\n\\n¡Atención ☹! UTF-8 characters,\n\r embedded newlines,\r &&am&p;& trailing whitespace\t \r '),
 ]
 
+test_non_barcodes = [
+    ('empty.png', None, None),
+]
+
+test_valid_images = test_barcodes + test_non_barcodes
+
 test_reader = None
 
 
@@ -43,7 +49,7 @@ def _check_decoding(filename, expected_format, expected_raw, extra={}):
     logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
     dec = test_reader.decode(path, pure_barcode=True, **extra)
     if expected_raw is None:
-        if dec is not None:
+        if dec.raw is not None:
             raise AssertionError('Expected failure, but got result in {} format'.format(expected_format, dec.format))
     else:
         if dec.raw != expected_raw:
@@ -54,7 +60,7 @@ def _check_decoding(filename, expected_format, expected_raw, extra={}):
 
 def test_decoding():
     global test_reader
-    yield from ((_check_decoding, filename, expected_format, expected_raw) for filename, expected_format, expected_raw in test_barcodes)
+    yield from ((_check_decoding, filename, expected_format, expected_raw) for filename, expected_format, expected_raw in test_valid_images)
 
 
 def test_possible_formats():
@@ -64,9 +70,9 @@ def test_possible_formats():
 
 @with_setup(setup_reader)
 def test_decoding_multiple():
-    reader = zxing.BarCodeReader()
-    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_barcodes]
-    for dec, (filename, expected_format, expected_raw) in zip(reader.decode(filenames, pure_barcode=True), test_barcodes):
+    global test_reader
+    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_valid_images]
+    for dec, (filename, expected_format, expected_raw) in zip(test_reader.decode(filenames, pure_barcode=True), test_valid_images):
         if dec.raw != expected_raw:
             raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
         if dec.format != expected_format:
