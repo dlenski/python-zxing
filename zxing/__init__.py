@@ -10,16 +10,24 @@ import os
 import pathlib
 import re
 import subprocess as sp
+import urllib.parse
 import zipfile
 from enum import Enum
 
 from .version import __version__  # noqa: F401
 
 
+def file_uri_to_path(s):
+    uri = urllib.parse.urlparse(s)
+    if (uri.scheme, uri.netloc, uri.query, uri.fragment) != ('file', '', '', ''):
+        raise ValueError(uri)
+    return urllib.parse.unquote_plus(uri.path)
+
+
 class BarCodeReaderException(Exception):
-    def __init__(self, message, filename=None, underlying=None):
-        self.message, self.filename, self.underlying = message, filename, underlying
-        super().__init__(message, filename, underlying)
+    def __init__(self, message, filename=None):
+        self.message, self.filename = message, filename
+        super().__init__(message, filename)
 
 
 class BarCodeReader(object):
@@ -65,10 +73,8 @@ class BarCodeReader(object):
 
         try:
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
-        except FileNotFoundError as e:
-            raise BarCodeReaderException("Java binary specified (%s) does not exist" % self.java, self.java, e)
-        except PermissionError as e:
-            raise BarCodeReaderException("Java binary specified (%s) is not executable" % self.java, self.java, e)
+        except OSError as e:
+            raise BarCodeReaderException("Could not execute specified Java binary", self.java) from e
         stdout, stderr = p.communicate()
 
         if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',
@@ -76,24 +82,31 @@ class BarCodeReader(object):
             raise BarCodeReaderException("Java JARs not found in classpath (%s)" % self.classpath, self.classpath)
         elif stdout.startswith((b'''Exception in thread "main" javax.imageio.IIOException: Can't get input stream from URL!''',
                                 b'''Exception in thread "main" java.util.concurrent.ExecutionException: javax.imageio.IIOException: Can't get input stream from URL!''')):
-            raise BarCodeReaderException("Could not find image path: %s" % filenames, filenames)
+            # Find the line that looks like: "Caused by: java.io.FileNotFoundException: $FILENAME ({No such file or directory,Permission denied,*)"
+            fn, err = next((map(bytes.decode, l[42:].rsplit(b' (', 1)) for l in stdout.splitlines() if l.startswith(b"Caused by: java.io.FileNotFoundException: ")), ('', ''))
+            if err == 'No such file or directory)':
+                err = FileNotFoundError(fn)
+            elif err == 'Permission denied)':
+                err = PermissionError(fn)
+            else:
+                err = OSError(err[:-1])
+            raise BarCodeReaderException("Java library could not read image", fn) from err
         elif stdout.startswith(b'''Exception in thread "main" java.io.IOException: Could not load '''):
-            raise BarCodeReaderException("Java library could not read image; is it in a supported format?", filenames)
+            # First line ends with file:// URI
+            fn = file_uri_to_path(stdout.splitlines()[0][63:].decode())
+            raise BarCodeReaderException("Java library could not read image (is it in a supported format?)", fn)
         elif stdout.startswith(b'''Exception '''):
-            raise BarCodeReaderException("Unknown Java exception: %s" % stdout)
+            raise BarCodeReaderException("Unknown Java exception", self.java) from RuntimeError(stdout)
         elif p.returncode:
-            raise BarCodeReaderException("Unexpected Java subprocess return code %d" % p.returncode, self.java)
+            raise BarCodeReaderException("Unexpected Java subprocess return code", self.java) from sp.CalledProcessError(p.returncode, cmd, stdout)
 
-        if p.returncode:
-            codes = [None for fn in filenames]
-        else:
-            file_results = []
-            for line in stdout.splitlines(True):
-                if line.startswith((b'file:///', b'Exception')):
-                    file_results.append(line)
-                else:
-                    file_results[-1] += line
-            codes = [BarCode.parse(result) for result in file_results]
+        file_results = []
+        for line in stdout.splitlines(True):
+            if line.startswith((b'file:///', b'Exception')):
+                file_results.append(line)
+            else:
+                file_results[-1] += line
+        codes = [BarCode.parse(result) for result in file_results]
 
         if one_file:
             return codes[0]

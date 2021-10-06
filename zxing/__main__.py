@@ -26,7 +26,7 @@ def main():
         try:
             bc = bcr.decode(fn, try_harder=args.try_harder)
         except BarCodeReaderException as e:
-            p.error(e.message + (('\n\t' + e.filename) if e.filename else ''))
+            p.error(e.message + ((': ' + e.filename) if e.filename else '') + (('\n\tCaused by: ' + repr(e.__cause__) if e.__cause__ else '')))
         if args.csv:
             wr.writerow((fn, bc.format, bc.type, bc.raw, bc.parsed) if bc else (fn, 'ERROR', None, None, None))
         else:
