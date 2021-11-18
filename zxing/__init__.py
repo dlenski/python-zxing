@@ -14,6 +14,13 @@ import urllib.parse
 import zipfile
 from enum import Enum
 
+try:
+    from PIL.Image import Image
+    from tempfile import NamedTemporaryFile
+    have_pil = True
+except ImportError:
+    have_pil = None
+
 from .version import __version__  # noqa: F401
 
 
@@ -53,12 +60,24 @@ class BarCodeReader(object):
     def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        if isinstance(filenames, str):
+        if isinstance(filenames, (str, Image) if have_pil else str):
             one_file = True
             filenames = filenames,
         else:
             one_file = False
-        file_uris = [pathlib.Path(f).absolute().as_uri() for f in filenames]
+
+        file_uris = []
+        temp_files = []
+        for fn_or_im in filenames:
+            if have_pil and isinstance(fn_or_im, Image):
+                tf = NamedTemporaryFile(prefix='PIL_image_', suffix='.png')
+                temp_files.append(tf)
+                fn_or_im.save(tf, compresslevel=0)
+                tf.flush()
+                fn = tf.name
+            else:
+                fn = fn_or_im
+            file_uris.append(pathlib.Path(fn).absolute().as_uri())
 
         cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
         if try_harder:
@@ -75,7 +94,11 @@ class BarCodeReader(object):
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
         except OSError as e:
             raise BarCodeReaderException("Could not execute specified Java binary", self.java) from e
-        stdout, stderr = p.communicate()
+        else:
+            stdout, stderr = p.communicate()
+        finally:
+            for tf in temp_files:
+                tf.close()
 
         if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',
                               b'Exception in thread "main" java.lang.NoClassDefFoundError:')):

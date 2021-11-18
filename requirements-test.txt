@@ -1,1 +1,5 @@
 nose>=1.0
+
+pillow>=3.0,<6.0; python_version < '3.5'
+pillow>=3.0,<8.0; python_version >= '3.5' and python_version < '3.6'
+pillow>=8.0; python_version >= '3.6'

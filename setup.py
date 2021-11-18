@@ -46,13 +46,21 @@ setup(
     name='zxing',
     version=version_pep,
     description="Wrapper for decoding/reading barcodes with ZXing (Zebra Crossing) library",
-    long_description="More information: https://github.com/dlenski/python-zxing",
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     url="https://github.com/dlenski/python-zxing",
     author='Daniel Lenski',
     author_email='dlenski@gmail.com',
     packages=['zxing'],
     package_data={'zxing': download_java_files()},
     entry_points={'console_scripts': ['zxing=zxing.__main__:main']},
+    extras_require={
+        "Image": [
+            "pillow>=3.0,<6.0; python_version < '3.5'",
+            "pillow>=3.0,<8.0; python_version >= '3.5' and python_version < '3.6'",
+            "pillow>=8.0; python_version >= '3.6'",
+        ]
+    },
     install_requires=open('requirements.txt').readlines(),
     tests_require=open('requirements-test.txt').readlines(),
     test_suite='nose.collector',

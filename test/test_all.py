@@ -2,6 +2,8 @@ import logging
 import os
 from tempfile import mkdtemp
 
+from PIL import Image
+
 from nose import with_setup
 from nose.tools import raises
 
@@ -43,11 +45,12 @@ def test_version():
 
 
 @with_setup(setup_reader)
-def _check_decoding(filename, expected_format, expected_raw, extra={}):
+def _check_decoding(filename, expected_format, expected_raw, extra={}, as_Image=False):
     global test_reader
     path = os.path.join(test_barcode_dir, filename)
+    what = Image.open(path) if as_Image else path
     logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
-    dec = test_reader.decode(path, pure_barcode=True, **extra)
+    dec = test_reader.decode(what, pure_barcode=True, **extra)
     if expected_raw is None:
         assert dec.raw is None, (
             'Expected failure, but got result in {} format'.format(expected_format, dec.format))
@@ -56,11 +59,19 @@ def _check_decoding(filename, expected_format, expected_raw, extra={}):
             'Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
         assert dec.format == expected_format, (
             'Expected {!r} but got {!r}'.format(expected_format, dec.format))
+        if as_Image:
+            assert not os.path.exists(dec.path), (
+                'Expected temporary file {!r} to be deleted, but it still exists'.format(dec.path))
 
 
 def test_decoding():
     global test_reader
     yield from ((_check_decoding, filename, expected_format, expected_raw) for filename, expected_format, expected_raw in test_valid_images)
+
+
+def test_decoding_from_Image():
+    global test_reader
+    yield from ((_check_decoding, filename, expected_format, expected_raw, {}, True) for filename, expected_format, expected_raw in test_valid_images)
 
 
 def test_possible_formats():
