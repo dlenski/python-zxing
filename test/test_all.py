@@ -49,13 +49,13 @@ def _check_decoding(filename, expected_format, expected_raw, extra={}):
     logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
     dec = test_reader.decode(path, pure_barcode=True, **extra)
     if expected_raw is None:
-        if dec.raw is not None:
-            raise AssertionError('Expected failure, but got result in {} format'.format(expected_format, dec.format))
+        assert dec.raw is None, (
+            'Expected failure, but got result in {} format'.format(expected_format, dec.format))
     else:
-        if dec.raw != expected_raw:
-            raise AssertionError('Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
-        if dec.format != expected_format:
-            raise AssertionError('Expected {!r} but got {!r}'.format(expected_format, dec.format))
+        assert dec.raw == expected_raw, (
+            'Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
+        assert dec.format == expected_format, (
+            'Expected {!r} but got {!r}'.format(expected_format, dec.format))
 
 
 def test_decoding():
@@ -73,10 +73,10 @@ def test_decoding_multiple():
     global test_reader
     filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_valid_images]
     for dec, (filename, expected_format, expected_raw) in zip(test_reader.decode(filenames, pure_barcode=True), test_valid_images):
-        if dec.raw != expected_raw:
-            raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
-        if dec.format != expected_format:
-            raise AssertionError('{}: Expected {!r} but got {!r}'.format(filename, expected_format, dec.format))
+        assert dec.raw == expected_raw, (
+            '{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
+        assert dec.format == expected_format, (
+            '{}: Expected {!r} but got {!r}'.format(filename, expected_format, dec.format))
 
 
 def test_parsing():
