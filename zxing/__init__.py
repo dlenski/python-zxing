@@ -13,6 +13,7 @@ import subprocess as sp
 import urllib.parse
 import zipfile
 from enum import Enum
+from io import IOBase
 
 try:
     from PIL.Image import Image
@@ -59,7 +60,7 @@ class BarCodeReader(object):
     def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        if isinstance(filenames, (str, Image) if have_pil else str):
+        if isinstance(filenames, (str, IOBase, Image) if have_pil else (str, IOBase)):
             one_file = True
             filenames = filenames,
         else:
@@ -72,6 +73,12 @@ class BarCodeReader(object):
                 tf = NamedTemporaryFile(prefix='PIL_image_', suffix='.png')
                 temp_files.append(tf)
                 fn_or_im.save(tf, compresslevel=0)
+                tf.flush()
+                fn = tf.name
+            elif isinstance(fn_or_im, IOBase):
+                tf = NamedTemporaryFile(prefix='temp_', suffix=os.path.splitext(fn_or_im.name)[1] or '.bin')
+                temp_files.append(tf)
+                tf.write(fn_or_im.read())
                 tf.flush()
                 fn = tf.name
             else:
