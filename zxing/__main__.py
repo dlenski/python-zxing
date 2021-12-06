@@ -1,6 +1,6 @@
 import argparse
 import csv
-from sys import stdout
+from sys import stdout, stdin
 
 from . import BarCodeReader, BarCodeReaderException
 from .version import __version__
@@ -23,8 +23,14 @@ def main():
         wr.writerow(('Filename', 'Format', 'Type', 'Raw', 'Parsed'))
 
     for fn in args.image:
+        if fn == '-':
+            ff = stdin.buffer
+            fn = ff.name
+        else:
+            ff = fn
+
         try:
-            bc = bcr.decode(fn, try_harder=args.try_harder)
+            bc = bcr.decode(ff, try_harder=args.try_harder)
         except BarCodeReaderException as e:
             p.error(e.message + ((': ' + e.filename) if e.filename else '') + (('\n\tCaused by: ' + repr(e.__cause__) if e.__cause__ else '')))
         if args.csv:
