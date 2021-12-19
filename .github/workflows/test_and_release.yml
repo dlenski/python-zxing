@@ -52,10 +52,12 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+        sudo apt update
         sudo apt install -qq openjdk-11-jre  # JDK is needed to run tests
     - name: Test
       run: |
-        python setup.py test
+        python setup.py build
+        nose2 -v --pretty-assert
 
   # https://github.com/actions/starter-workflows/blob/main/ci/python-publish.yml
   release:

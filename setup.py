@@ -63,7 +63,7 @@ setup(
     },
     install_requires=open('requirements.txt').readlines(),
     tests_require=open('requirements-test.txt').readlines(),
-    test_suite='nose.collector',
+    test_suite='nose2.collector.collector',
     license='LGPL v3 or later',
     classifiers=[
         'Development Status :: 4 - Beta',

@@ -30,7 +30,6 @@ def file_uri_to_path(s):
         raise ValueError(uri)
     return urllib.parse.unquote_plus(uri.path)
 
-
 class BarCodeReaderException(Exception):
     def __init__(self, message, filename=None):
         self.message, self.filename = message, filename
@@ -104,9 +103,10 @@ class BarCodeReader(object):
                               b'Exception in thread "main" java.lang.NoClassDefFoundError:')):
             raise BarCodeReaderException("Java JARs not found in classpath (%s)" % self.classpath, self.classpath)
         elif stdout.startswith((b'''Exception in thread "main" javax.imageio.IIOException: Can't get input stream from URL!''',
-                                b'''Exception in thread "main" java.util.concurrent.ExecutionException: javax.imageio.IIOException: Can't get input stream from URL!''')):
+                                b'''Exception in thread "main" java.util.concurrent.ExecutionException: javax.imageio.IIOException: Can't get input stream from URL!''')):  # noqa: E501
             # Find the line that looks like: "Caused by: java.io.FileNotFoundException: $FILENAME ({No such file or directory,Permission denied,*)"
-            fn, err = next((map(bytes.decode, l[42:].rsplit(b' (', 1)) for l in stdout.splitlines() if l.startswith(b"Caused by: java.io.FileNotFoundException: ")), ('', ''))
+            fn, err = next((map(bytes.decode, l[42:].rsplit(b' (', 1)) for l in stdout.splitlines()
+                            if l.startswith(b"Caused by: java.io.FileNotFoundException: ")), ('', ''))
             if err == 'No such file or directory)':
                 err = FileNotFoundError(fn)
             elif err == 'Permission denied)':

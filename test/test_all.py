@@ -4,8 +4,8 @@ from tempfile import mkdtemp
 
 from PIL import Image
 
-from nose import with_setup
-from nose.tools import raises
+from nose2.tools.decorators import with_setup
+from nose2.tools.such import helper
 
 import zxing
 
@@ -119,27 +119,27 @@ def test_wrong_formats():
                 for filename, expected_format, expected_raw in test_barcodes)
 
 
-@raises(zxing.BarCodeReaderException)
 def test_bad_java():
     test_reader = zxing.BarCodeReader(java=os.devnull)
-    test_reader.decode(test_barcodes[0][0])
+    with helper.assertRaises(zxing.BarCodeReaderException):
+        test_reader.decode(test_barcodes[0][0])
 
 
-@raises(zxing.BarCodeReaderException)
 def test_bad_classpath():
     test_reader = zxing.BarCodeReader(classpath=mkdtemp())
-    test_reader.decode(test_barcodes[0][0])
+    with helper.assertRaises(zxing.BarCodeReaderException):
+        test_reader.decode(test_barcodes[0][0])
 
 
-@raises(zxing.BarCodeReaderException)
 @with_setup(setup_reader)
 def test_nonexistent_file_error():
     global test_reader
-    test_reader.decode(os.path.join(test_barcode_dir, 'nonexistent.png'))
+    with helper.assertRaises(zxing.BarCodeReaderException):
+        test_reader.decode(os.path.join(test_barcode_dir, 'nonexistent.png'))
 
 
-@raises(zxing.BarCodeReaderException)
 @with_setup(setup_reader)
 def test_bad_file_format_error():
     global test_reader
-    test_reader.decode(os.path.join(test_barcode_dir, 'bad_format.png'))
+    with helper.assertRaises(zxing.BarCodeReaderException):
+        test_reader.decode(os.path.join(test_barcode_dir, 'bad_format.png'))
