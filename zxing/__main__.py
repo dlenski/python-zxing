@@ -37,3 +37,7 @@ def main():
                 print("  Decoded %s barcode in %s format." % (bc.type, bc.format))
                 print("  Raw text:    %r" % bc.raw)
                 print("  Parsed text: %r\n" % bc.parsed)
+
+
+if __name__=='__main__':
+    main()
