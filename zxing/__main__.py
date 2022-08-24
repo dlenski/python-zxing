@@ -38,7 +38,7 @@ def main():
         else:
             print("%s\n%s" % (fn, '=' * len(fn)))
             if not bc:
-                print("  ERROR: Failed to decode barcode.")
+                print("  ERROR: Failed to decode barcode (using Java ZXing library v%s)." % bcr.zxing_version)
             else:
                 print("  Decoded %s barcode in %s format." % (bc.type, bc.format))
                 print("  Raw text:    %r" % bc.raw)
