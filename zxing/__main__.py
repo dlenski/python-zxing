@@ -64,7 +64,8 @@ def main():
             else:
                 print("  Decoded %s barcode in %s format." % (bc.type, bc.format))
                 print("  Raw text:    %r" % bc.raw)
-                print("  Parsed text: %r\n" % bc.parsed)
+                print("  Parsed text: %r" % bc.parsed)
+                print("  Raw bits:    %r\n" % bc.raw_bits.hex())
 
 
 if __name__=='__main__':

@@ -85,7 +85,9 @@ class BarCodeReader(object):
                 fn = fn_or_im
             file_uris.append(pathlib.Path(fn).absolute().as_uri())
 
-        cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
+        cmd = [self.java, '-cp', self.classpath, self.cls]
+        if self.zxing_version_info and self.zxing_version_info >= (3, 5, 0):
+            cmd.append('--raw')
         if try_harder:
             cmd.append('--try_harder')
         if pure_barcode:
@@ -95,6 +97,7 @@ class BarCodeReader(object):
         if possible_formats:
             for pf in possible_formats:
                 cmd += ['--possible_formats', pf]
+        cmd += file_uris
 
         try:
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
@@ -152,6 +155,7 @@ class CLROutputBlock(Enum):
     RAW = 1
     PARSED = 2
     POINTS = 3
+    RAW_BITS = 4
 
 
 class BarCode(object):
@@ -159,7 +163,7 @@ class BarCode(object):
     def parse(cls, zxing_output):
         block = CLROutputBlock.UNKNOWN
         uri = format = type = None
-        raw = parsed = b''
+        raw = parsed = raw_bits = b''
         points = []
 
         for l in zxing_output.splitlines(True):
@@ -177,25 +181,34 @@ class BarCode(object):
                 else:
                     raw += l
             elif block == CLROutputBlock.PARSED:
-                if re.match(rb"Found\s+\d+\s+result\s+points?", l):
+                if l.startswith(b"Raw bits:"):
+                    block = CLROutputBlock.RAW_BITS
+                elif re.match(rb"Found\s+\d+\s+result\s+points?", l):
                     block = CLROutputBlock.POINTS
                 else:
                     parsed += l
+            elif block == CLROutputBlock.RAW_BITS:
+                if re.match(rb"Found\s+\d+\s+result\s+points?", l):
+                    block = CLROutputBlock.POINTS
+                else:
+                    raw_bits += l
             elif block == CLROutputBlock.POINTS:
                 m = re.match(rb"\s*Point\s*\d+:\s*\(([\d.]+),([\d.]+)\)", l)
                 if m:
                     points.append((float(m.group(1)), float(m.group(2))))
 
-        raw = raw[:-1].decode()
         parsed = parsed[:-1].decode()
-        return cls(uri, format, type, raw, parsed, points)
+        raw = raw[:-1].decode()
+        raw_bits = bytes.fromhex(raw_bits[:-1].decode())
+        return cls(uri, format, type, raw, parsed, raw_bits, points)
 
     def __bool__(self):
         return bool(self.raw)
 
-    def __init__(self, uri, format=None, type=None, raw=None, parsed=None, points=None):
+    def __init__(self, uri, format=None, type=None, raw=None, parsed=None, raw_bits=None, points=None):
         self.raw = raw
         self.parsed = parsed
+        self.raw_bits = raw_bits
         self.uri = uri
         self.format = format
         self.type = type
@@ -209,7 +222,7 @@ class BarCode(object):
             pass
 
     def __repr__(self):
-        return '{}(raw={!r}, parsed={!r}, {}={!r}, format={!r}, type={!r}, points={!r})'.format(
-            self.__class__.__name__, self.raw, self.parsed,
+        return '{}(raw={!r}, parsed={!r}, raw_bits={!r:x}, {}={!r}, format={!r}, type={!r}, points={!r})'.format(
+            self.__class__.__name__, self.raw, self.parsed, self.raw_bits,
             'path' if self.path else 'uri', self.path or self.uri,
             self.format, self.type, self.points)
