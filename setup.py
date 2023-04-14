@@ -62,6 +62,7 @@ setup(
         ]
     },
     install_requires=open('requirements.txt').readlines(),
+    python_requires=">=3",
     tests_require=open('requirements-test.txt').readlines(),
     test_suite='nose2.collector.collector',
     license='LGPL v3 or later',
@@ -78,5 +79,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
 )

@@ -1,11 +1,14 @@
 # python-zxing
 
 [![PyPI](https://img.shields.io/pypi/v/zxing.svg)](https://pypi.python.org/pypi/zxing)
-[![Build Status](https://github.com/dlenski/python-zxing/workflows/test_and_release/badge.svg)](https://github.com/dlenski/python-zxing/actions?query=workflow%3Atest_and_release)
+[![Build Status](https://github.com/dlenski/python-zxing/workflows/test_and_release/badge.svg)](https://github.com/dlenski/python-zxing/actions/workflows/test_and_release.yml)
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-This is a wrapper for the [ZXing barcode library](https://github.com/zxing/zxing). (It's a "slightly less quick-and-dirty" fork of [oostendo/python-zxing](https://github.com/oostendo/python-zxing).)
+This is a wrapper for the [ZXing barcode library](https://github.com/zxing/zxing).
 It will allow you to read and decode barcode images from Python.
+
+It was originally a "slightly less quick-and-dirty" fork of [oostendo/python-zxing](https://github.com/oostendo/python-zxing), but has since
+evolved considerably beyond that ancestral package.
 
 ## Dependencies and installation
 
@@ -41,7 +44,7 @@ If it encounters any other recognizable error from the Java ZXing library, it ra
 The command-line interface can decode images into barcodes and output in either a human-readable or CSV format:
 
 ```
-usage: zxing [-h] [-c] [--try-harder] image [image ...]
+usage: zxing [-h] [-c] [--try-harder] [-V] image [image ...]
 ```
 
 Human-readable:
