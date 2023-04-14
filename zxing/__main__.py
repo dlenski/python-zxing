@@ -6,17 +6,36 @@ from . import BarCodeReader, BarCodeReaderException
 from .version import __version__
 
 
+class ErrorDeferredArgumentParser(argparse.ArgumentParser):
+    def __init__(self, *args, **kwargs):
+        self._errors = []
+        super().__init__(*args, **kwargs)
+
+    def error(self, message):
+        self._errors.append(message)
+
+    def handle_errors(self):
+        for e in self._errors:
+            super().error(e)
+
+
 def main():
-    p = argparse.ArgumentParser()
+    p = ErrorDeferredArgumentParser()
     p.add_argument('-c', '--csv', action='store_true')
     p.add_argument('--try-harder', action='store_true')
     p.add_argument('image', nargs='+')
     p.add_argument('-P', '--classpath', help=argparse.SUPPRESS)
     p.add_argument('-J', '--java', help=argparse.SUPPRESS)
-    p.add_argument('-V', '--version', action='version', version='%(prog)s ' + __version__)
+    p.add_argument('-V', '--version', action='store_true')
     args = p.parse_args()
+    if p._errors and not args.version:
+        p.handle_errors()
 
     bcr = BarCodeReader(args.classpath, args.java)
+
+    if args.version:
+        p.exit(0, '%s v%s\n'
+                  'using Java ZXing library version v%s\n' % (p.prog, __version__, bcr.zxing_version))
 
     if args.csv:
         wr = csv.writer(stdout)
