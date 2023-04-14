@@ -16,6 +16,7 @@ test_barcodes = [
     ('CODE_128-easy.jpg', 'CODE_128', 'This should be CODE_128'),
     ('PDF_417-easy.bmp', 'PDF_417', 'This should be PDF_417'),
     ('AZTEC-easy.jpg', 'AZTEC', 'This should be AZTEC'),
+    ('AZTEC-utf8.png', 'AZTEC', 'L’état, c’est moi'),
     ('QR CODE (¡filenáme törture test! 😉).png', 'QR_CODE', 'This should be QR_CODE'),
     ('QR_CODE-png-but-wrong-extension.bmp', 'QR_CODE', 'This should be QR_CODE'),
     ('QR_CODE-fun-with-whitespace.png', 'QR_CODE', '\n\r\t\r\r\r\n '),
