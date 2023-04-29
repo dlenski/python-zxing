@@ -23,6 +23,7 @@ def main():
     p = ErrorDeferredArgumentParser()
     p.add_argument('-c', '--csv', action='store_true')
     p.add_argument('--try-harder', action='store_true')
+    p.add_argument('--pure-barcode', action='store_true')
     p.add_argument('image', nargs='+')
     p.add_argument('-P', '--classpath', help=argparse.SUPPRESS)
     p.add_argument('-J', '--java', help=argparse.SUPPRESS)
@@ -49,7 +50,7 @@ def main():
             ff = fn
 
         try:
-            bc = bcr.decode(ff, try_harder=args.try_harder)
+            bc = bcr.decode(ff, try_harder=args.try_harder, pure_barcode=args.pure_barcode)
         except BarCodeReaderException as e:
             p.error(e.message + ((': ' + e.filename) if e.filename else '') + (('\n\tCaused by: ' + repr(e.__cause__) if e.__cause__ else '')))
         if args.csv:

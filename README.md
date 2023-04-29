@@ -44,7 +44,7 @@ If it encounters any other recognizable error from the Java ZXing library, it ra
 The command-line interface can decode images into barcodes and output in either a human-readable or CSV format:
 
 ```
-usage: zxing [-h] [-c] [--try-harder] [-V] image [image ...]
+usage: zxing [-h] [-c] [--try-harder] [--pure-barcode] [-V] image [image ...]
 ```
 
 Human-readable:
