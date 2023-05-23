@@ -144,3 +144,7 @@ def test_bad_file_format_error():
     global test_reader
     with helper.assertRaises(zxing.BarCodeReaderException):
         test_reader.decode(os.path.join(test_barcode_dir, 'bad_format.png'))
+
+
+def test_failing():
+    assert True is False
