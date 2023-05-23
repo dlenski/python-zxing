@@ -5,6 +5,9 @@ name: test_and_release
 
 on: [ push, pull_request]
 
+permissions:
+  checks: write
+
 jobs:
   build:
 
@@ -57,7 +60,12 @@ jobs:
     - name: Test
       run: |
         python setup.py build
-        nose2 -v --pretty-assert
+        nose2 -v --pretty-assert --plugin nose2.plugins.junitxml --junit-xml
+    - name: Publish Test Report
+      uses: mikepenz/action-junit-report@v3
+      if: success() || failure()  # always run
+      with:
+        report_paths: 'nose2-junit.xml'
 
   # https://github.com/actions/starter-workflows/blob/main/ci/python-publish.yml
   release:
