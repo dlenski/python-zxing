@@ -6,6 +6,7 @@
 #  library:  http://code.google.com/p/zxing/
 #
 
+import glob
 import os
 import pathlib
 import re
@@ -14,6 +15,7 @@ import urllib.parse
 import zipfile
 from enum import Enum
 from io import IOBase
+from itertools import chain
 
 try:
     from PIL.Image import Image
@@ -50,12 +52,17 @@ class BarCodeReader(object):
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-        with zipfile.ZipFile(os.path.join(os.path.dirname(__file__), 'java', 'core.jar')) as c:
-            for line in c.open('META-INF/MANIFEST.MF'):
-                if line.startswith(b'Bundle-Version: '):
-                    self.zxing_version = line.split(b' ', 1)[1].strip().decode()
-                    self.zxing_version_info = tuple(int(n) for n in self.zxing_version.split('.'))
-                    break
+        for fn in chain.from_iterable(glob.glob(cp) for cp in self.classpath.split(':')):
+            if os.path.basename(fn) == 'core.jar':
+                self.core_jar = fn
+                with zipfile.ZipFile(self.core_jar) as c:
+                    for line in c.open('META-INF/MANIFEST.MF'):
+                        if line.startswith(b'Bundle-Version: '):
+                            self.zxing_version = line.split(b' ', 1)[1].strip().decode()
+                            self.zxing_version_info = tuple(int(n) for n in self.zxing_version.split('.'))
+                            break
+                return
+        raise BarCodeReaderException("Java JARs not found in classpath (%s)" % self.classpath, self.classpath)
 
     def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats

@@ -137,9 +137,8 @@ def test_bad_java():
 
 
 def test_bad_classpath():
-    test_reader = zxing.BarCodeReader(classpath=mkdtemp())
     with helper.assertRaises(zxing.BarCodeReaderException):
-        test_reader.decode(test_barcodes[0][0])
+        test_reader = zxing.BarCodeReader(classpath=mkdtemp())
 
 
 @with_setup(setup_reader)
