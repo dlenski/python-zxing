@@ -6,6 +6,7 @@ from PIL import Image
 
 from nose2.tools.decorators import with_setup
 from nose2.tools.such import helper
+import unittest
 
 import zxing
 
@@ -48,6 +49,10 @@ def test_version():
 @with_setup(setup_reader)
 def _check_decoding(filename, expected_format, expected_raw, extra={}, as_Image=False):
     global test_reader
+    if test_reader.zxing_version_info >= (3, 5, 0) and expected_format == 'PDF_417':
+        # See https://github.com/zxing/zxing/issues/1682 and https://github.com/zxing/zxing/issues/1683
+        raise unittest.SkipTest("ZXing v{} CommandLineRunner is broken for combination of {} barcode format and --raw option".format(
+            test_reader.zxing_version, expected_format))
     path = os.path.join(test_barcode_dir, filename)
     what = Image.open(path) if as_Image else path
     logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
@@ -83,8 +88,10 @@ def test_possible_formats():
 @with_setup(setup_reader)
 def test_decoding_multiple():
     global test_reader
-    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in test_valid_images]
-    for dec, (filename, expected_format, expected_raw) in zip(test_reader.decode(filenames, pure_barcode=True), test_valid_images):
+    # See https://github.com/zxing/zxing/issues/1682 and https://github.com/zxing/zxing/issues/1683
+    _tvi = [x for x in test_valid_images if test_reader.zxing_version_info < (3, 5, 0) or x[1] != 'PDF_417']
+    filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in _tvi]
+    for dec, (filename, expected_format, expected_raw) in zip(test_reader.decode(filenames, pure_barcode=True), _tvi):
         assert dec.raw == expected_raw, (
             '{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
         assert dec.format == expected_format, (
