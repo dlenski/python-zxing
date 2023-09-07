@@ -85,7 +85,7 @@ class BarCodeReader(object):
                 fn = fn_or_im
             file_uris.append(pathlib.Path(fn).absolute().as_uri())
 
-        cmd = [self.java, '-cp', self.classpath, self.cls]
+        cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
         if self.zxing_version_info and self.zxing_version_info >= (3, 5, 0):
             cmd.append('--raw')
         if try_harder:
@@ -97,7 +97,6 @@ class BarCodeReader(object):
         if possible_formats:
             for pf in possible_formats:
                 cmd += ['--possible_formats', pf]
-        cmd += file_uris
 
         try:
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, universal_newlines=False)
@@ -129,7 +128,7 @@ class BarCodeReader(object):
             fn = file_uri_to_path(stdout.splitlines()[0][63:].decode())
             raise BarCodeReaderException("Java library could not read image (is it in a supported format?)", fn)
         elif stdout.startswith(b'''Exception '''):
-            raise BarCodeReaderException("Unknown Java exception", self.java) from RuntimeError(stdout)
+            raise BarCodeReaderException("Unknown Java exception", self.java) from sp.CalledProcessError(0, cmd, stdout)
         elif p.returncode:
             raise BarCodeReaderException("Unexpected Java subprocess return code", self.java) from sp.CalledProcessError(p.returncode, cmd, stdout)
 
