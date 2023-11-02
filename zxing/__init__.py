@@ -93,7 +93,9 @@ class BarCodeReader(object):
             file_uris.append(pathlib.Path(fn).absolute().as_uri())
 
         cmd = [self.java, '-cp', self.classpath, self.cls] + file_uris
-        if self.zxing_version_info and self.zxing_version_info >= (3, 5, 0):
+        if self.zxing_version_info and self.zxing_version_info >= (3, 5, 3):
+            # The --raw option was added in 3.5.0, but broken for certain barcode types (PDF_417 and maybe others) until 3.5.3
+            # See https://github.com/zxing/zxing/issues/1682 and https://github.com/zxing/zxing/issues/1683
             cmd.append('--raw')
         if try_harder:
             cmd.append('--try_harder')

@@ -49,7 +49,7 @@ def test_version():
 @with_setup(setup_reader)
 def _check_decoding(filename, expected_format, expected_raw, extra={}, as_Image=False):
     global test_reader
-    if test_reader.zxing_version_info >= (3, 5, 0) and expected_format == 'PDF_417':
+    if (3, 5, 0) <= test_reader.zxing_version_info < (3, 5, 3) and expected_format == 'PDF_417':
         # See https://github.com/zxing/zxing/issues/1682 and https://github.com/zxing/zxing/issues/1683
         raise unittest.SkipTest("ZXing v{} CommandLineRunner is broken for combination of {} barcode format and --raw option".format(
             test_reader.zxing_version, expected_format))
@@ -89,7 +89,7 @@ def test_possible_formats():
 def test_decoding_multiple():
     global test_reader
     # See https://github.com/zxing/zxing/issues/1682 and https://github.com/zxing/zxing/issues/1683
-    _tvi = [x for x in test_valid_images if test_reader.zxing_version_info < (3, 5, 0) or x[1] != 'PDF_417']
+    _tvi = [x for x in test_valid_images if not ((3, 5, 0) <= test_reader.zxing_version_info < (3, 5, 3) and x[1] == 'PDF_417')]
     filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in _tvi]
     for dec, (filename, expected_format, expected_raw) in zip(test_reader.decode(filenames, pure_barcode=True), _tvi):
         assert dec.raw == expected_raw, (
