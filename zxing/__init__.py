@@ -230,7 +230,7 @@ class BarCode(object):
             pass
 
     def __repr__(self):
-        return '{}(raw={!r}, parsed={!r}, raw_bits={!r:x}, {}={!r}, format={!r}, type={!r}, points={!r})'.format(
-            self.__class__.__name__, self.raw, self.parsed, self.raw_bits,
+        return '{}(raw={!r}, parsed={!r}, raw_bits={!r}, {}={!r}, format={!r}, type={!r}, points={!r})'.format(
+            self.__class__.__name__, self.raw, self.parsed, self.raw_bits.hex(),
             'path' if self.path else 'uri', self.path or self.uri,
             self.format, self.type, self.points)
