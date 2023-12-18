@@ -59,7 +59,7 @@ def _check_decoding(filename, expected_format, expected_raw, extra={}, as_Image=
     dec = test_reader.decode(what, pure_barcode=True, **extra)
     if expected_raw is None:
         assert dec.raw is None, (
-            'Expected failure, but got result in {} format'.format(expected_format, dec.format))
+            'Expected failure, but got result in {} format'.format(dec.format))
     else:
         assert dec.raw == expected_raw, (
             'Expected {!r} but got {!r}'.format(expected_raw, dec.raw))
