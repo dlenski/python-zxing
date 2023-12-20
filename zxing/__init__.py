@@ -27,6 +27,12 @@ except ImportError:
 from .version import __version__  # noqa: F401
 
 
+# The list of barcode types supported by ZXing hasn't been updated in 10 years, but could conceivably be expanded.
+# - Code: https://github.com/zxing/zxing/blob/1bcc298ad386c346c73bde68a9d9718dd51e2d0d/core/src/main/java/com/google/zxing/BarcodeFormat.java
+# - Docs: https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html
+BarCodeFormats = Enum('BarCodeFormats', 'AZTEC CODABAR CODE_39 CODE_93 CODE_128 DATA_MATRIX EAN_8 EAN_13 ITF MAXICODE PDF_417 QR_CODE RSS_14 RSS_EXPANDED UPC_A UPC_E UPC_EAN_EXTENSION')
+
+
 def file_uri_to_path(s):
     uri = urllib.parse.urlparse(s)
     if (uri.scheme, uri.netloc, uri.query, uri.fragment) != ('file', '', '', ''):
@@ -218,7 +224,7 @@ class BarCode(object):
         self.parsed = parsed
         self.raw_bits = raw_bits
         self.uri = uri
-        self.format = format
+        self.format = format and getattr(BarCodeFormats, format, format)
         self.type = type
         self.points = points
 

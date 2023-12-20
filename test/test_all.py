@@ -55,6 +55,8 @@ def _check_decoding(filename, expected_format, expected_raw, extra={}, as_Image=
             test_reader.zxing_version, expected_format))
     path = os.path.join(test_barcode_dir, filename)
     what = Image.open(path) if as_Image else path
+    if isinstance(expected_format, str):
+        expected_format = getattr(zxing.BarCodeFormats, expected_format)
     logging.debug('Trying to parse {}, expecting {!r}.'.format(path, expected_raw))
     dec = test_reader.decode(what, pure_barcode=True, **extra)
     if expected_raw is None:
@@ -92,6 +94,8 @@ def test_decoding_multiple():
     _tvi = [x for x in test_valid_images if not ((3, 5, 0) <= test_reader.zxing_version_info < (3, 5, 3) and x[1] == 'PDF_417')]
     filenames = [os.path.join(test_barcode_dir, filename) for filename, expected_format, expected_raw in _tvi]
     for dec, (filename, expected_format, expected_raw) in zip(test_reader.decode(filenames, pure_barcode=True), _tvi):
+        if isinstance(expected_format, str):
+            expected_format = getattr(zxing.BarCodeFormats, expected_format)
         assert dec.raw == expected_raw, (
             '{}: Expected {!r} but got {!r}'.format(filename, expected_raw, dec.parsed))
         assert dec.format == expected_format, (
