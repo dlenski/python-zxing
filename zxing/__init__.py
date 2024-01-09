@@ -11,6 +11,7 @@ import os
 import pathlib
 import re
 import subprocess as sp
+import sys
 import urllib.parse
 import zipfile
 from enum import Enum
@@ -41,18 +42,19 @@ class BarCodeReaderException(Exception):
 
 class BarCodeReader(object):
     cls = "com.google.zxing.client.j2se.CommandLineRunner"
+    classpath_sep = ';' if sys.platform == 'nt' else ':'  # https://stackoverflow.com/a/60211688
 
     def __init__(self, classpath=None, java=None):
         self.java = java or 'java'
         self.zxing_version = self.zxing_version_info = None
         if classpath:
-            self.classpath = classpath if isinstance(classpath, str) else ':'.join(classpath)
+            self.classpath = classpath if isinstance(classpath, str) else self.classpath_sep.join(classpath)
         elif "ZXING_CLASSPATH" in os.environ:
             self.classpath = os.environ.get("ZXING_CLASSPATH", "")
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-        for fn in chain.from_iterable(glob.glob(cp) for cp in self.classpath.split(':')):
+        for fn in chain.from_iterable(glob.glob(cp) for cp in self.classpath.split(self.classpath_sep)):
             if os.path.basename(fn) == 'core.jar':
                 self.core_jar = fn
                 with zipfile.ZipFile(self.core_jar) as c:
