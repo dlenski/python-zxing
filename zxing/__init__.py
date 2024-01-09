@@ -52,7 +52,7 @@ class BarCodeReader(object):
         else:
             self.classpath = os.path.join(os.path.dirname(__file__), 'java', '*')
 
-        for fn in chain.from_iterable(glob.glob(cp) for cp in self.classpath.split(':')):
+        for fn in glob.glob(self.classpath):
             if os.path.basename(fn) == 'core.jar':
                 self.core_jar = fn
                 with zipfile.ZipFile(self.core_jar) as c:
