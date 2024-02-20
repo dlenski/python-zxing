@@ -15,7 +15,7 @@ evolved considerably beyond that ancestral package.
 Use the Python 3 version of pip (usually invoked via `pip3`) to install: `pip3 install zxing`
 
 * You'll neeed to have a recent `java` binary somewhere in your path. (Tested with OpenJDK v7, v8, v11.)
-* pip will automatically download the relevant [JAR](https://en.wikipedia.org/wiki/JAR_(file_format)) files for the Java ZXing libraries (currently v3.5.1)
+* pip will automatically download the relevant [JAR](https://en.wikipedia.org/wiki/JAR_(file_format)) files for the Java ZXing libraries (currently v3.5.3)
 
 ## Usage
 
@@ -31,8 +31,8 @@ The `BarCodeReader` class is used to decode images:
 BarCode(raw='This should be QR_CODE', parsed='This should be QR_CODE', path='test/barcodes/QR_CODE-easy.png', format='QR_CODE', type='TEXT', points=[(15.0, 87.0), (15.0, 15.0), (87.0, 15.0), (75.0, 75.0)])
 ```
 
-The attributes of the decoded `BarCode` object are `raw`, `parsed`, `path`, `format`, `type`, and `points`. The list of formats which ZXing can decode is
-[here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
+The attributes of the decoded `BarCode` object are `raw`, `parsed`, `path`, `format`, `type`, `points`, and `raw_bits`.
+The list of formats which ZXing can decode is [here](https://zxing.github.io/zxing/apidocs/com/google/zxing/BarcodeFormat.html).
 
 The `decode()` method accepts an image path or [PIL Image object](https://pillow.readthedocs.io/en/stable/reference/Image.html) (or list thereof)
 and takes optional parameters `try_harder` (boolean), `possible_formats` (list of formats to consider), and `pure_barcode` (boolean).
