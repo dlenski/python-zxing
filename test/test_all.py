@@ -129,6 +129,22 @@ Found 4 result points:
     assert r.startswith('BarCode(') and r.endswith(')')
 
 
+def test_parsing_not_found():
+    stdout = "file:///tmp/some%5ffile%5fwithout%5fbarcode.png: No barcode found\n"
+    dec = zxing.BarCode.parse(stdout.encode())
+    assert dec.uri == 'file:///tmp/some%5ffile%5fwithout%5fbarcode.png'
+    assert dec.path == '/tmp/some_file_without_barcode.png'
+    assert dec.format is None
+    assert dec.type is None
+    assert dec.raw is None
+    assert dec.raw_bits is None
+    assert dec.parsed is None
+    assert dec.points is None
+    assert bool(dec) is False
+    r = repr(dec)
+    assert r.startswith('BarCode(') and r.endswith(')')
+
+
 def test_wrong_formats():
     all_test_formats = {fmt for fn, fmt, raw in test_barcodes}
     yield from ((_check_decoding, filename, expected_format, None, dict(possible_formats=all_test_formats - {expected_format}))
