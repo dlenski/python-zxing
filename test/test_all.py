@@ -6,6 +6,7 @@ from PIL import Image
 
 from nose2.tools.decorators import with_setup
 from nose2.tools.such import helper
+from nose2.tools import params
 import unittest
 
 import zxing
@@ -98,30 +99,34 @@ def test_decoding_multiple():
             '{}: Expected {!r} but got {!r}'.format(filename, expected_format, dec.format))
 
 
-def test_parsing():
-    dec = zxing.BarCode.parse("""
+@params(False, True)
+def test_parsing(with_raw_bits):
+    stdout = ("""
 file:///tmp/default%20file.png (format: FAKE_DATA, type: TEXT):
 Raw result:
 Élan|\tthe barcode is taking off
 Parsed result:
 Élan
-\tthe barcode is taking off
+\tthe barcode is taking off""") + ("""
 Raw bits:
-  f00f00cafe
+  f00f00cafe""" if with_raw_bits else "") + ("""
 Found 4 result points:
   Point 0: (24.0,18.0)
   Point 1: (21.0,196.0)
   Point 2: (201.0,198.0)
   Point 3: (205.23952,21.0)
-""".encode())
+""")
+    dec = zxing.BarCode.parse(stdout.encode())
     assert dec.uri == 'file:///tmp/default%20file.png'
     assert dec.path == '/tmp/default file.png'
     assert dec.format == 'FAKE_DATA'
     assert dec.type == 'TEXT'
     assert dec.raw == 'Élan|\tthe barcode is taking off'
-    assert dec.raw_bits == bytes.fromhex('f00f00cafe')
+    assert dec.raw_bits == (bytes.fromhex('f00f00cafe') if with_raw_bits else b'')
     assert dec.parsed == 'Élan\n\tthe barcode is taking off'
     assert dec.points == [(24.0, 18.0), (21.0, 196.0), (201.0, 198.0), (205.23952, 21.0)]
+    r = repr(dec)
+    assert r.startswith('BarCode(') and r.endswith(')')
 
 
 def test_wrong_formats():
