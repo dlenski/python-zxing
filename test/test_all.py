@@ -181,7 +181,10 @@ def test_bad_file_format_error():
 @with_setup(setup_reader)
 def _check_filenames_type(filenames, expected_raw):
     result = test_reader.decode(filenames)
-    if isinstance(expected_raw, list):
+    if isinstance(filenames, set):
+        # Might be in another order.
+        assert set(map(attrgetter('raw'), result)) == set(expected_raw)
+    elif isinstance(expected_raw, list):
         assert list(map(attrgetter('raw'), result)) == expected_raw
     else:
         assert result.raw == expected_raw
