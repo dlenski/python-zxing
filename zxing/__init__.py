@@ -17,6 +17,7 @@ import zipfile
 from enum import Enum
 from io import IOBase
 from itertools import chain
+from types import GeneratorType
 
 try:
     from PIL.Image import Image
@@ -69,11 +70,11 @@ class BarCodeReader(object):
     def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
         possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
 
-        if isinstance(filenames, (str, IOBase, Image) if have_pil else (str, IOBase)):
+        if isinstance(filenames, (list, set, tuple, GeneratorType)):
+            one_file = False
+        else:
             one_file = True
             filenames = filenames,
-        else:
-            one_file = False
 
         file_uris = []
         temp_files = []
