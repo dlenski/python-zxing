@@ -162,6 +162,18 @@ def test_bad_classpath():
         test_reader = zxing.BarCodeReader(classpath=mkdtemp())
 
 
+def test_wrong_JAVA_HOME():
+    saved_JAVA_HOME = os.environ.get('JAVA_HOME')
+    try:
+        os.environ['JAVA_HOME'] = '/non-existent/path/to/java/stuff'
+        test_reader = zxing.BarCodeReader()
+        with helper.assertRaises(zxing.BarCodeReaderException):
+            test_reader.decode(test_barcodes[0][0])
+    finally:
+        if saved_JAVA_HOME is not None:
+            os.environ['JAVA_HOME'] = saved_JAVA_HOME
+
+
 @with_setup(setup_reader)
 def test_nonexistent_file_error():
     global test_reader

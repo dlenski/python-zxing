@@ -140,6 +140,8 @@ class BarCodeReader(object):
             raise BarCodeReaderException("Java library could not read image (is it in a supported format?)", fn)
         elif stdout.startswith(b'''Exception '''):
             raise BarCodeReaderException("Unknown Java exception", self.java) from sp.CalledProcessError(0, cmd, stdout)
+        elif stdout.startswith(b'''The operation couldn't be completed. Unable to locate a Java Runtime.'''):
+            raise BarCodeReaderException("Unable to locate Java runtime (check JAVA_HOME variable and other configuration)", self.java) from sp.CalledProcessError(p.returncode, cmd, stdout)
         elif p.returncode:
             raise BarCodeReaderException("Unexpected Java subprocess return code", self.java) from sp.CalledProcessError(p.returncode, cmd, stdout)
 
