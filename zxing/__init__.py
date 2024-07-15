@@ -147,7 +147,7 @@ class BarCodeReader(object):
 
         file_results = []
         for line in stdout.splitlines(True):
-            if line.startswith((b'file:///', b'Exception')):
+            if line.startswith((b'file://', b'Exception')):
                 file_results.append(line)
             else:
                 file_results[-1] += line
@@ -180,7 +180,7 @@ class BarCode(object):
 
         for l in zxing_output.splitlines(True):
             if block == CLROutputBlock.UNKNOWN:
-                if l.endswith(b': No barcode found\n'):
+                if l.strip().endswith(b': No barcode found'):
                     return cls(l.rsplit(b':', 1)[0].decode(), None, None, None, None, None)
                 m = re.match(rb"(\S+) \(format:\s*([^,]+),\s*type:\s*([^)]+)\)", l)
                 if m:
