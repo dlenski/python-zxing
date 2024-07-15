@@ -1,5 +1,7 @@
 import logging
 import os
+from operator import attrgetter
+from pathlib import Path
 from tempfile import mkdtemp
 
 from PIL import Image
@@ -186,3 +188,33 @@ def test_bad_file_format_error():
     global test_reader
     with helper.assertRaises(zxing.BarCodeReaderException):
         test_reader.decode(os.path.join(test_barcode_dir, 'bad_format.png'))
+
+
+@with_setup(setup_reader)
+def _check_filenames_type(filenames, expected_raw):
+    result = test_reader.decode(filenames)
+    if isinstance(filenames, set):
+        # Might be in another order.
+        assert set(map(attrgetter('raw'), result)) == set(expected_raw)
+    elif isinstance(expected_raw, list):
+        assert list(map(attrgetter('raw'), result)) == expected_raw
+    else:
+        assert result.raw == expected_raw
+
+
+def test_filenames_types():
+    multi_paths = [
+        Path(test_barcode_dir, test_barcodes[0][0]),
+        os.path.join(test_barcode_dir, test_barcodes[1][0])
+    ]
+    multi_expected = [test_barcodes[0][2], test_barcodes[1][2]]
+    yield from (
+        (_check_filenames_type, filenames, expected_raw) for filenames, expected_raw in [
+            (os.path.join(test_barcode_dir, test_barcodes[0][0]), test_barcodes[0][2]),
+            (Path(test_barcode_dir, test_barcodes[0][0]), test_barcodes[0][2]),
+            (multi_paths, multi_expected),
+            (set(multi_paths), multi_expected),
+            (tuple(multi_paths), multi_expected),
+            ((x for x in multi_paths), multi_expected),  # Generator, inline version of `yield`.
+        ]
+    )
