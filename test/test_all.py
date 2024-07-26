@@ -1,5 +1,6 @@
 import logging
 import os
+from itertools import product
 from tempfile import mkdtemp
 
 from PIL import Image
@@ -99,10 +100,10 @@ def test_decoding_multiple():
             '{}: Expected {!r} but got {!r}'.format(filename, expected_format, dec.format))
 
 
-@params(False, True)
-def test_parsing(with_raw_bits):
+@params(*product((False, True), repeat=2))
+def test_parsing(with_raw_bits, with_netloc):
     stdout = ("""
-file:///tmp/default%20file.png (format: FAKE_DATA, type: TEXT):
+file://""") + ("NETWORK_SHARE" if with_netloc else "") + ("""/tmp/default%20file.png (format: FAKE_DATA, type: TEXT):
 Raw result:
 Élan|\tthe barcode is taking off
 Parsed result:
@@ -117,8 +118,8 @@ Found 4 result points:
   Point 3: (205.23952,21.0)
 """)
     dec = zxing.BarCode.parse(stdout.encode())
-    assert dec.uri == 'file:///tmp/default%20file.png'
-    assert dec.path == '/tmp/default file.png'
+    assert dec.uri == 'file://' + ("NETWORK_SHARE" if with_netloc else "") + '/tmp/default%20file.png'
+    assert dec.path == (None if with_netloc else '/tmp/default file.png')
     assert dec.format == 'FAKE_DATA'
     assert dec.type == 'TEXT'
     assert dec.raw == 'Élan|\tthe barcode is taking off'
