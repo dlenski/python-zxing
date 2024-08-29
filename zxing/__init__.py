@@ -42,7 +42,7 @@ class BarCodeReaderException(Exception):
 
 class BarCodeReader(object):
     cls = "com.google.zxing.client.j2se.CommandLineRunner"
-    classpath_sep = ';' if sys.platform == 'nt' else ':'  # https://stackoverflow.com/a/60211688
+    classpath_sep = ';' if os.name == 'nt' else ':'  # https://stackoverflow.com/a/60211688
 
     def __init__(self, classpath=None, java=None):
         self.java = java or 'java'
