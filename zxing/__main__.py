@@ -46,6 +46,25 @@ def main():
         if fn == '-':
             ff = stdin.buffer
             fn = ff.name
+        elif ':' in fn:
+            from urllib.parse import urlparse
+            from base64 import b64decode
+            from PIL import Image
+            from io import BytesIO
+
+            r = urlparse(fn)
+            ok = False
+            if r.scheme == 'data' and not r.netloc:
+                mime, *rest = r.path.split(',', 1)
+                if mime.startswith('image/') and mime.endswith(';base64') and rest:
+                    data = b64decode(rest[0])
+                    fobj = BytesIO(data)
+                    ff = Image.open(fobj)
+                    fn = f'data:{mime},{len(data)}_B64_BYTES'
+                    ok = True
+
+            if not ok:
+                p.error("Can't handle URIs other than data:image/TYPE,base64;...")
         else:
             ff = fn
 
