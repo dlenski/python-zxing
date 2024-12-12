@@ -2,7 +2,7 @@ import argparse
 import csv
 from sys import stdout, stdin
 
-from . import BarCodeReader, BarCodeReaderException
+from . import BarCodeReader, BarCodeReaderException, data_uri_to_fobj
 from .version import __version__
 
 
@@ -24,7 +24,7 @@ def main():
     p.add_argument('-c', '--csv', action='store_true')
     p.add_argument('--try-harder', action='store_true')
     p.add_argument('--pure-barcode', action='store_true')
-    p.add_argument('image', nargs='+')
+    p.add_argument('image', nargs='+', help='File path or data: URI of an image containing a barcode')
     p.add_argument('-P', '--classpath', help=argparse.SUPPRESS)
     p.add_argument('-J', '--java', help=argparse.SUPPRESS)
     p.add_argument('-V', '--version', action='store_true')
@@ -46,6 +46,12 @@ def main():
         if fn == '-':
             ff = stdin.buffer
             fn = ff.name
+        elif ':' in fn:
+            try:
+                ff = data_uri_to_fobj(fn)
+                fn = ff.name
+            except ValueError as exc:
+                p.error(exc.args[0])
         else:
             ff = fn
 

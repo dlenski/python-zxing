@@ -14,8 +14,9 @@ import subprocess as sp
 import sys
 import urllib.parse
 import zipfile
+from base64 import b64decode
 from enum import Enum
-from io import IOBase
+from io import BytesIO, IOBase
 from itertools import chain
 
 try:
@@ -33,6 +34,23 @@ def file_uri_to_path(s):
     if (uri.scheme, uri.netloc, uri.query, uri.fragment) != ('file', '', '', ''):
         raise ValueError(uri)
     return urllib.parse.unquote_plus(uri.path)
+
+
+def data_uri_to_fobj(s):
+    r = urllib.parse.urlparse(s)
+    if r.scheme == 'data' and not r.netloc:
+        mime, *rest = r.path.split(',', 1)
+        if rest:
+            if mime.endswith(';base64') and rest:
+                mime = mime[:-7]
+                data = b64decode(rest[0])
+            else:
+                data = urllib.parse.unquote_to_bytes(rest[0])
+            ff = BytesIO(data)
+            ff.name = f'data_uri_{len(data)}_bytes.{mime.split("/")[-1]}'
+            return ff
+    raise ValueError("Cannot handle URIs other than data:MIMETYPE[;base64],DATA")
+
 
 class BarCodeReaderException(Exception):
     def __init__(self, message, filename=None):

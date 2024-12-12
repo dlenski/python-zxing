@@ -187,3 +187,16 @@ def test_bad_file_format_error():
     global test_reader
     with helper.assertRaises(zxing.BarCodeReaderException):
         test_reader.decode(os.path.join(test_barcode_dir, 'bad_format.png'))
+
+
+def test_data_uris():
+    def _check_data_uri(uri, contents, suffix):
+        fobj = zxing.data_uri_to_fobj(uri)
+        assert fobj.getvalue() == contents
+        assert fobj.name.endswith(suffix)
+
+    yield from ((_check_data_uri, uri, contents, suffix) for (uri, contents, suffix) in (
+        ('data:image/png,ABCD', b'ABCD', '.png'),
+        ('data:image/jpeg;base64,3q2+7w==', bytes.fromhex('deadbeef'), '.jpeg'),
+        ('data:application/binary,%f1%f2%f3', bytes.fromhex('f1f2f3'), '.binary'),
+    ))
