@@ -85,7 +85,7 @@ class BarCodeReader(object):
                 tf.flush()
                 fn = tf.name
             elif isinstance(fn_or_im, IOBase):
-                tf = NamedTemporaryFile(prefix='temp_', suffix=os.path.splitext(fn_or_im.name)[1] or '.bin')
+                tf = NamedTemporaryFile(prefix='temp_', suffix=os.path.splitext(getattr(fn_or_im, 'name', ''))[1])
                 temp_files.append(tf)
                 tf.write(fn_or_im.read())
                 tf.flush()
