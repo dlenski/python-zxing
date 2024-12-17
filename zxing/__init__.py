@@ -14,8 +14,10 @@ import subprocess as sp
 import sys
 import urllib.parse
 import zipfile
+from abc import abstractmethod, ABC
 from base64 import b64decode
 from enum import Enum
+from functools import update_wrapper
 from io import BytesIO, IOBase
 from itertools import chain
 
@@ -58,7 +60,55 @@ class BarCodeReaderException(Exception):
         super().__init__(message, filename)
 
 
-class BarCodeReader(object):
+class _BarCodeReader(ABC):
+    @abstractmethod
+    def decode(self, filenames, possible_formats=None):
+        pass
+
+    def decode(self, filenames, possible_formats=None, **kwargs):
+        possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
+
+        if isinstance(filenames, (str, IOBase, Image) if have_pil else (str, IOBase)):
+            one_file = True
+            filenames = filenames,
+        else:
+            one_file = False
+
+        fns = []
+        temp_files = []
+        try:
+            for fn_or_im in filenames:
+                if have_pil and isinstance(fn_or_im, Image):
+                    tf = NamedTemporaryFile(prefix='PIL_image_', suffix='.png')
+                    temp_files.append(tf)
+                    fn_or_im.save(tf, compresslevel=0)
+                    tf.flush()
+                    fn = tf.name
+                elif isinstance(fn_or_im, IOBase):
+                    tf = NamedTemporaryFile(prefix='temp_', suffix=os.path.splitext(getattr(fn_or_im, 'name', ''))[1])
+                    temp_files.append(tf)
+                    tf.write(fn_or_im.read())
+                    tf.flush()
+                    fn = tf.name
+                else:
+                    fn = fn_or_im
+                fns.append(fn)
+
+            results = self._decode(fns, possible_formats=possible_formats, **kwargs)
+        finally:
+            for tf in temp_files:
+                tf.close()
+
+        if one_file:
+            return results[0]
+        else:
+            return results
+
+    @abstractmethod
+    def _decode(self, filenames, possible_formats=None):
+        pass
+
+class BarCodeReader(_BarCodeReader):
     cls = "com.google.zxing.client.j2se.CommandLineRunner"
     classpath_sep = ';' if os.name == 'nt' else ':'  # https://stackoverflow.com/a/60211688
 
@@ -84,34 +134,8 @@ class BarCodeReader(object):
                 return
         raise BarCodeReaderException("Java JARs not found in classpath (%s)" % self.classpath, self.classpath)
 
-    def decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
-        possible_formats = (possible_formats,) if isinstance(possible_formats, str) else possible_formats
-
-        if isinstance(filenames, (str, IOBase, Image) if have_pil else (str, IOBase)):
-            one_file = True
-            filenames = filenames,
-        else:
-            one_file = False
-
-        file_uris = []
-        temp_files = []
-        for fn_or_im in filenames:
-            if have_pil and isinstance(fn_or_im, Image):
-                tf = NamedTemporaryFile(prefix='PIL_image_', suffix='.png')
-                temp_files.append(tf)
-                fn_or_im.save(tf, compresslevel=0)
-                tf.flush()
-                fn = tf.name
-            elif isinstance(fn_or_im, IOBase):
-                tf = NamedTemporaryFile(prefix='temp_', suffix=os.path.splitext(getattr(fn_or_im, 'name', ''))[1])
-                temp_files.append(tf)
-                tf.write(fn_or_im.read())
-                tf.flush()
-                fn = tf.name
-            else:
-                fn = fn_or_im
-            file_uris.append(pathlib.Path(fn).absolute().as_uri())
-
+    def _decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False, products_only=False):
+        file_uris = [pathlib.Path(fn).absolute().as_uri() for fn in filenames]
         cmd = [self.java, '-Djava.awt.headless=true', '-cp', self.classpath, self.cls] + file_uris
         if self.zxing_version_info and self.zxing_version_info >= (3, 5, 3):
             # The --raw option was added in 3.5.0, but broken for certain barcode types (PDF_417 and maybe others) until 3.5.3
@@ -133,9 +157,6 @@ class BarCodeReader(object):
             raise BarCodeReaderException("Could not execute specified Java binary", self.java) from e
         else:
             stdout, stderr = p.communicate()
-        finally:
-            for tf in temp_files:
-                tf.close()
 
         if stdout.startswith((b'Error: Could not find or load main class com.google.zxing.client.j2se.CommandLineRunner',
                               b'Exception in thread "main" java.lang.NoClassDefFoundError:')):
@@ -169,15 +190,15 @@ class BarCodeReader(object):
                 file_results.append(line)
             else:
                 file_results[-1] += line
-        codes = [BarCode.parse(result) for result in file_results]
+        codes = [BarCode.parse_zxing(result) for result in file_results]
 
-        if one_file:
-            return codes[0]
-        else:
-            # zxing (insanely) randomly reorders the output blocks, so we have to put them back in the
-            # expected order, based on their URIs
-            d = {c.uri: c for c in codes}
-            return [d[f] for f in file_uris]
+        # zxing (insanely) randomly reorders the output blocks, so we have to put them back in the
+        # expected order, based on their URIs
+        d = {c.uri: c for c in codes}
+        return [d[f] for f in file_uris]
+
+
+update_wrapper(ZxingBarCodeReader.decode, ZxingBarCodeReader._decode)
 
 
 class CLROutputBlock(Enum):
