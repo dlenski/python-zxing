@@ -21,6 +21,7 @@ from functools import update_wrapper
 from io import BytesIO, IOBase
 from itertools import chain
 
+
 try:
     from PIL.Image import Image
     from tempfile import NamedTemporaryFile
@@ -108,7 +109,31 @@ class _BarCodeReader(ABC):
     def _decode(self, filenames, possible_formats=None):
         pass
 
-class BarCodeReader(_BarCodeReader):
+class RxingBarCodeReader(_BarCodeReader):
+    def __init__(self, rxing_cli=None):
+        self.rxing_cli = rxing_cli or 'rxing-cli'
+        output = sp.check_output([self.rxing_cli, '--version'], stderr=sp.STDOUT, universal_newlines=True)
+        self.rxing_version = output.split()[-1].strip()
+        self.rxing_version_info = tuple(int(n) for n in self.rxing_version.split('.'))
+
+    def _decode(self, filenames, try_harder=False, possible_formats=None, pure_barcode=False):
+        options = []
+        if try_harder:
+            options.append('--try-harder')
+        if pure_barcode:
+            options += ['--pure-barcode', 'true']
+        if possible_formats:
+            for pf in possible_formats:
+                options += ['-b', pf]
+
+        try:
+            return [BarCode.parse_rxing(
+                sp.check_output([self.rxing_cli, fn, 'decode', '--detailed-results'] + options, stderr=sp.STDOUT, text=True), fn)
+                for fn in filenames]
+        except OSError as e:
+            raise BarCodeReaderException("Could not execute specified rxing-cli binary", self.rxing_cli) from e
+
+class ZxingBarCodeReader(_BarCodeReader):
     cls = "com.google.zxing.client.j2se.CommandLineRunner"
     classpath_sep = ';' if os.name == 'nt' else ':'  # https://stackoverflow.com/a/60211688
 
@@ -198,6 +223,7 @@ class BarCodeReader(_BarCodeReader):
         return [d[f] for f in file_uris]
 
 
+update_wrapper(RxingBarCodeReader.decode, RxingBarCodeReader._decode)
 update_wrapper(ZxingBarCodeReader.decode, ZxingBarCodeReader._decode)
 
 
@@ -210,8 +236,44 @@ class CLROutputBlock(Enum):
 
 
 class BarCode(object):
+    RUST_UNICODE_ESCAPE = re.compile(r'\\u\{([a-f0-9]+)\}')
+    POINTS = re.compile(r'PointT\s*\{\s*x\:\s*([-\d.]+),\s*y\:\s*([-\d.]+)\s*\}')
+
+    RXING_FORMAT_TO_ZXING = {'QRCODE': 'QR_CODE'}
+
     @classmethod
-    def parse(cls, zxing_output):
+    def parse_rxing(cls, rxing_output, fn):
+        errp = f"Error while attempting to locate barcode in '{fn}':"
+        if rxing_output.startswith(errp):
+            err = rxing_output.removeprefix(errp).strip()
+            if err == "NotFoundException":
+                return BarCode(uri=pathlib.Path(path).absolute().as_uri())
+            else:
+                raise BarCodeReaderException(err, fn)
+        format = None
+        raw = ''
+        points = []
+        for l in rxing_output.splitlines():
+            if l.startswith('[Barcode Format] '):
+                # rxing's output names of the barcode formats can be mechanically translated to zxing's names, except for QRCODE:
+                # https://github.com/rxing-core/rxing/blob/87ff09bb8e0e4175d2681352aaf3b5e08f32c928/src/barcode_format.rs#L113
+                format = l.removeprefix('[Barcode Format] ').replace(' ', '_').upper()
+                format = cls.RXING_FORMAT_TO_ZXING.get(format, format)
+            elif l.startswith('[Data] '):
+                # This is a Rust repr of a string, include backslash escapes. Unlike Python, its
+                # unicode character escapes are not always 4 digits, and have braces (e.g. '\u{123}')
+                # FIXME: This incorrectly handles the case of an escaped '\\' followed by 'u{...}'
+                raw = l.removeprefix('[Data] ')
+                raw = cls.RUST_UNICODE_ESCAPE.sub(lambda m: r'\u' + m.group(1).rjust(4, '0'), raw).encode().decode('unicode_escape')
+            elif l.startswith('[Points] '):
+                points = [((float(m[0]), float(m[1]))) for m in cls.POINTS.findall(l.removeprefix('[Points] '))]
+
+        return cls(pathlib.Path(path).absolute().as_uri(),
+                   raw=raw, parsed=parsed, points=points, type='TEXT', format=format)
+
+
+    @classmethod
+    def parse_zxing(cls, zxing_output):
         block = CLROutputBlock.UNKNOWN
         uri = format = type = None
         raw = parsed = raw_bits = b''
@@ -244,7 +306,7 @@ class BarCode(object):
                 else:
                     raw_bits += l
             elif block == CLROutputBlock.POINTS:
-                m = re.match(rb"\s*Point\s*\d+:\s*\(([\d.]+),([\d.]+)\)", l)
+                m = re.match(rb"\s*Point\s*\d+:\s*\(([-\d.]+),([-\d.]+)\)", l)
                 if m:
                     points.append((float(m.group(1)), float(m.group(2))))
 
