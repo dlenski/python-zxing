@@ -2,7 +2,7 @@ import argparse
 import csv
 from sys import stdout, stdin
 
-from . import BarCodeReader, BarCodeReaderException, data_uri_to_fobj
+from . import ZxingBarCodeReader, RxingBarCodeReader, BarCodeReaderException, data_uri_to_fobj
 from .version import __version__
 
 
@@ -25,6 +25,7 @@ def main():
     p.add_argument('--try-harder', action='store_true')
     p.add_argument('--pure-barcode', action='store_true')
     p.add_argument('image', nargs='+', help='File path or data: URI of an image containing a barcode')
+    p.add_argument('-Z', '--zxing', action='store_true', help='Use ZXing instead of RXing')
     p.add_argument('-P', '--classpath', help=argparse.SUPPRESS)
     p.add_argument('-J', '--java', help=argparse.SUPPRESS)
     p.add_argument('-V', '--version', action='store_true')
@@ -32,11 +33,14 @@ def main():
     if p._errors and not args.version:
         p.handle_errors()
 
-    bcr = BarCodeReader(args.classpath, args.java)
+    bcr = ZxingBarCodeReader(args.classpath, args.java) if args.zxing else RxingBarCodeReader()
+    if isinstance(bcr, RxingBarCodeReader):
+        libver = 'Rust RXing library version v%s' % bcr.rxing_version
+    else:
+        libver = 'Java ZXing library version v%s' % bcr.zxing_version
 
     if args.version:
-        p.exit(0, '%s v%s\n'
-                  'using Java ZXing library version v%s\n' % (p.prog, __version__, bcr.zxing_version))
+        p.exit(0, '%s v%s\nusing %s\n' % (p.prog, __version__, libver))
 
     if args.csv:
         wr = csv.writer(stdout)
@@ -66,12 +70,13 @@ def main():
         else:
             print("%s\n%s" % (fn, '=' * len(fn)))
             if not bc:
-                print("  ERROR: Failed to decode barcode (using Java ZXing library v%s)." % bcr.zxing_version)
+                print("  ERROR: Failed to decode barcode (using %s)." % libver)
             else:
                 print("  Decoded %s barcode in %s format." % (bc.type, bc.format))
                 print("  Raw text:    %r" % bc.raw)
                 print("  Parsed text: %r" % bc.parsed)
-                print("  Raw bits:    %r\n" % bc.raw_bits.hex())
+                if bc.raw_bits:
+                    print("  Raw bits:    %r\n" % bc.raw_bits.hex())
 
 
 if __name__=='__main__':
