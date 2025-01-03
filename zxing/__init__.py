@@ -235,8 +235,17 @@ class CLROutputBlock(Enum):
     RAW_BITS = 4
 
 
+RUST_UNICODE_ESCAPE = re.compile(r'(\\+)u\{([a-f0-9]+)\}')
+def _unrustify_repr(rust_repr):
+    # Rust's repr of a Unicode string can include backslash escapes, which are mostly 
+    # compatible with Python's. Unlike Python, however, its Unicode character escapes
+    # are not always 4 hex digits, and have braces (e.g. '\u{123}')
+    # To handle the case of an escaped '\\' followed by 'u{...}', we ignore even
+    # numbers of backslashes.
+    unrust = RUST_UNICODE_ESCAPE.sub(lambda m: r'\u' + m.group(2).rjust(4, '0') if len(m.group(1)) % 2 else m.group(0), rust_repr)
+    return unrust.encode().decode('unicode_escape')
+
 class BarCode(object):
-    RUST_UNICODE_ESCAPE = re.compile(r'\\u\{([a-f0-9]+)\}')
     POINTS = re.compile(r'PointT\s*\{\s*x\:\s*([-\d.]+),\s*y\:\s*([-\d.]+)\s*\}')
 
     RXING_FORMAT_TO_ZXING = {'QRCODE': 'QR_CODE'}
@@ -260,11 +269,8 @@ class BarCode(object):
                 format = l.removeprefix('[Barcode Format] ').replace(' ', '_').upper()
                 format = cls.RXING_FORMAT_TO_ZXING.get(format, format)
             elif l.startswith('[Data] '):
-                # This is a Rust repr of a string, include backslash escapes. Unlike Python, its
-                # unicode character escapes are not always 4 digits, and have braces (e.g. '\u{123}')
-                # FIXME: This incorrectly handles the case of an escaped '\\' followed by 'u{...}'
-                raw = l.removeprefix('[Data] ')
-                raw = cls.RUST_UNICODE_ESCAPE.sub(lambda m: r'\u' + m.group(1).rjust(4, '0'), raw).encode().decode('unicode_escape')
+                # This is a Rust repr of a string, which is almost-but-not-quite handled by bytes.decode('unicode_escape')
+                raw = _unrustify_repr(l.removeprefix('[Data] '))
             elif l.startswith('[Points] '):
                 points = [((float(m[0]), float(m[1]))) for m in cls.POINTS.findall(l.removeprefix('[Points] '))]
 

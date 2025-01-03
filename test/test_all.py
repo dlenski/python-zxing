@@ -160,14 +160,14 @@ def test_rxing_parsing():
     stdout = (r"""
 [Barcode Format] qrcode
 [Points] [PointT { x: -0.123, y: 456 }, PointT { x: 1.5, y: 1.5 }, PointT { x: 2.5, y: -2.5 }, PointT { x: -0, y: 0.0 }]
-[Data] \u{a1}Atenci\u{f3}n
+[Data] \u{a1}Atenci\u{f3}n, \\u{f00} is not a Unicode escape
 """)
     dec = zxing.BarCode.parse_rxing(stdout, '/tmp/test.png')
     assert dec.uri == 'file:///tmp/test.png'
     assert dec.path == '/tmp/test.png'
     assert dec.format == 'QR_CODE'
     assert dec.type == 'TEXT'
-    assert dec.raw == dec.parsed == '\u00a1Atenci\u00f3n'
+    assert dec.raw == dec.parsed == '\u00a1Atenci\u00f3n, \\u{f00} is not a Unicode escape'
     assert dec.raw_bits is None
     assert dec.points == [(-0.123, 456.0), (1.5, 1.5), (2.5, -2.5), (0.0, 0.0)]
     r = repr(dec)
@@ -188,15 +188,6 @@ def test_rxing_parsing_not_found():
     assert bool(dec) is False
     r = repr(dec)
     assert r.startswith('BarCode(') and r.endswith(')')
-
-
-def test_rxing_parsing_WRONG():
-    # FIXME: This is wrong, should not be parsed as a Unicode escape
-    stdout = (r"""
-[Data] 00\\u{ff}11
-""")
-    dec = zxing.BarCode.parse_rxing(stdout, '/tmp/test.png')
-    assert dec.raw == dec.parsed == r'00\u{ff}11'
 
 
 def test_wrong_formats():
