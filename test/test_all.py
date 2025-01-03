@@ -2,6 +2,7 @@ import logging
 import os
 from itertools import product
 from tempfile import mkdtemp
+from warnings import warn
 
 from PIL import Image
 
@@ -55,18 +56,21 @@ def test_version():
 @with_setup(setup_reader)
 def _check_decoding(filename, expected_format, expected_raw, extra={}, as_Image=False, use_rxing=True):
     global test_zxing_reader, test_rxing_reader
+    pure_barcode = True
     if not use_rxing and (3, 5, 0) <= test_zxing_reader.zxing_version_info < (3, 5, 3) and expected_format == 'PDF_417':
         # See https://github.com/zxing/zxing/issues/1682 and https://github.com/zxing/zxing/issues/1683
         raise unittest.SkipTest("ZXing v{} CommandLineRunner is broken for combination of {} barcode format and --raw option".format(
             test_zxing_reader.zxing_version, expected_format))
-    elif use_rxing and not expected_raw:
-        raise unittest.SkipTest("RXing-cli v{} is broken for failed barcodes with '--pure-barcode true'".format(
+    elif use_rxing and test_rxing_reader.rxing_version_info <= (1, 2, 7) and not expected_raw:
+        # See https://github.com/rxing-core/rxing/issues/58
+        pure_barcode = False
+        warn("RXing-cli v{} is broken for failed barcodes with '--pure-barcode true'".format(
             test_rxing_reader.rxing_version))
     path = os.path.join(test_barcode_dir, filename)
     what = Image.open(path) if as_Image else path
     logging.debug('Trying to parse {} with {}, expecting {!r}.'.format(path, ("RXing" if use_rxing else "ZXing"), expected_raw))
     reader = test_rxing_reader if use_rxing else test_zxing_reader
-    dec = reader.decode(what, pure_barcode=True, **extra)
+    dec = reader.decode(what, pure_barcode=pure_barcode, **extra)
     if expected_raw is None:
         assert dec.raw is None, (
             'Expected failure, but got result in {} format'.format(dec.format))
