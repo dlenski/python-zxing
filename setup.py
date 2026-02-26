@@ -23,9 +23,9 @@ with open(version_py, 'r') as fh:
 
 
 def download_java_files(force=False):
-    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.5.3/javase-3.5.3.jar',
-             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.5.3/core-3.5.3.jar',
-             'java/jcommander.jar': 'https://repo1.maven.org/maven2/com/beust/jcommander/1.82/jcommander-1.82.jar'}
+    files = {'java/javase.jar': 'https://repo1.maven.org/maven2/com/google/zxing/javase/3.5.4/javase-3.5.4.jar',
+             'java/core.jar': 'https://repo1.maven.org/maven2/com/google/zxing/core/3.5.4/core-3.5.4.jar',
+             'java/jcommander.jar': 'https://repo1.maven.org/maven2/org/jcommander/jcommander/1.85/jcommander-1.85.jar'}
 
     for fn, url in files.items():
         p = path.join(path.dirname(__file__), 'zxing', fn)
