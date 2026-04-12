@@ -1,3 +1,7 @@
+| ⚠️ Mostly obsolete |
+| ----------------- |
+| The [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) and [rxing](https://github.com/rxing-core/rxing/) projects have reimplemented nearly all of the features of [ZXing](https://github.com/zxing/zxing) in C++ and Rust, respectively. The [pyrxing](https://github.com/tanagumo/pyrxing) project provides convenient Python bindings for them. **If you need to read barcode images in Python, you should use `pyrxing` instead of this.**. It's faster and doesn't require Java in the background. |
+
 # python-zxing
 
 [![PyPI](https://img.shields.io/pypi/v/zxing.svg)](https://pypi.python.org/pypi/zxing)
